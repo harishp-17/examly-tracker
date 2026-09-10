@@ -2,18 +2,31 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxwW3coAMZZLNWnkZ9-j
 let studentMap = {};
 
 window.onload = function() {
-  // 1. Fetch Saved Roll Number from browser storage
-  const savedRoll = localStorage.getItem("vsb_saved_roll");
-  if (savedRoll) {
-    document.getElementById("rollNoInput").value = savedRoll;
-    document.getElementById("rememberRoll").checked = true;
-  }
+  // Start Live Clock
+  startLiveClock();
   
-  // 2. Fetch Dashboard Analytics Data
+  // Fetch Analytics
   fetchAnalytics();
 };
 
-// Fetch Live Analytics Bar Data
+// 1. Live Clock Function (Top Right Corner with Day, Date & Seconds)
+function startLiveClock() {
+  function updateClock() {
+    const now = new Date();
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const dayName = days[now.getDay()];
+    
+    const dateStr = now.toLocaleDateString('en-GB'); // DD/MM/YYYY
+    const timeStr = now.toLocaleTimeString('en-US', { hour12: true }); // HH:MM:SS AM/PM
+
+    document.getElementById('liveClock').innerText = `${dayName}, ${dateStr} | ${timeStr}`;
+  }
+  
+  updateClock();
+  setInterval(updateClock, 1000); // Updates every second
+}
+
+// 2. Fetch Dashboard Analytics Data
 function fetchAnalytics() {
   fetch(SCRIPT_URL)
     .then(res => res.json())
@@ -38,34 +51,28 @@ function fetchAnalytics() {
     .catch(err => console.error("Error loading stats:", err));
 }
 
-// Auto Suggest Name on Typing Roll No
+// 3. Dynamic Greeting Message on Typing Roll No
 function handleRollInput() {
   const rollVal = document.getElementById('rollNoInput').value.trim();
-  const nameDisplay = document.getElementById('studentNameDisplay');
+  const greetingBox = document.getElementById('studentGreetingBadge');
 
   if (studentMap[rollVal]) {
-    nameDisplay.innerText = "Student Name: " + studentMap[rollVal];
-  } else if (rollVal.length >= 4) {
-    nameDisplay.innerText = "Searching Student...";
+    const name = studentMap[rollVal];
+    greetingBox.innerText = `Hello ${name}, please update your Daily Progress!`;
+    greetingBox.style.display = "block";
   } else {
-    nameDisplay.innerText = "";
+    greetingBox.style.display = "none";
+    greetingBox.innerText = "";
   }
 }
 
-// Form Submit Handler
+// 4. Form Submit Handler with Person Submission Order Number
 function submitProgress() {
   const rollNo = document.getElementById("rollNoInput").value.trim();
-  const rememberChecked = document.getElementById("rememberRoll").checked;
 
   if (!rollNo) {
     alert("Please enter your Roll Number!");
     return;
-  }
-
-  if (rememberChecked) {
-    localStorage.setItem("vsb_saved_roll", rollNo);
-  } else {
-    localStorage.removeItem("vsb_saved_roll");
   }
 
   const submitBtn = document.getElementById("submitBtn");
@@ -94,7 +101,8 @@ function submitProgress() {
     submitBtn.innerText = "Submit Today Progress";
 
     if (data.result === "success") {
-      alert("Progress Updated Successfully!");
+      const name = studentMap[rollNo] || "Student";
+      alert(`🎉 Progress Updated Successfully!\n\n${name}, you are person #${data.submissionOrder} to submit today!`);
       fetchAnalytics();
     } else {
       alert("Invalid Roll Number! Please check your details.");
@@ -107,7 +115,7 @@ function submitProgress() {
   });
 }
 
-// WhatsApp Copy Button
+// 5. WhatsApp Copy Button
 function copyPendingListForWhatsApp() {
   fetch(SCRIPT_URL)
     .then(res => res.json())
@@ -124,4 +132,5 @@ function copyPendingListForWhatsApp() {
         });
       }
     });
+}
 }
