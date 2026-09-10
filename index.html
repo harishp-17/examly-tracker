@@ -3,84 +3,88 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>III CSBS Examly Course Progress Tracker</title>
+  <title>VSB CSBS Neopat Progress Tracker</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="card">
-    <h2>Examly Daily Course Tracker</h2>
-    <p class="subtitle">III CSBS - Daily Progress Update</p>
-    
-    <div class="date-badge">
-      <span>Date: </span><strong id="currentDate">Loading Date...</strong>
+
+  <div class="container">
+    <h2>VSB CSBS Neopat Tracker</h2>
+
+    <!-- Live Analytics Bar -->
+    <div class="analytics-card">
+      <div class="analytics-header">
+        <span><strong>Total Submitted Today:</strong> <span id="submittedCount">0</span> / <span id="totalCount">63</span></span>
+        <span id="progressPercent" style="font-weight: bold; color: #38bdf8;">0%</span>
+      </div>
+      <div class="progress-bg">
+        <div id="progressBar" class="progress-fill"></div>
+      </div>
     </div>
-    
-    <form id="trackerForm">
-      <div class="field">
-        <label for="rollNo">Register Number / Roll Number</label>
-        <input type="text" id="rollNo" placeholder="e.g. 922524244xxx" required>
+
+    <!-- Student Details -->
+    <div class="form-group">
+      <label for="rollNoInput">Register Roll Number:</label>
+      <input type="text" id="rollNoInput" placeholder="Ex: 922524244xxx" maxlength="12" oninput="handleRollInput()">
+      <div id="studentNameDisplay" class="student-name-badge"></div>
+      <div class="checkbox-group">
+        <input type="checkbox" id="rememberRoll">
+        <label for="rememberRoll" style="margin: 0; cursor: pointer;">Remember my Roll Number</label>
+      </div>
+    </div>
+
+    <!-- Course Progress Section -->
+    <div class="subject-grid">
+      <!-- DBMS -->
+      <div class="subject-box">
+        <div class="subject-title">DBMS</div>
+        <select id="dbmsStatus">
+          <option value="Pending">Pending</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Completed">Completed</option>
+        </select>
+        <input type="text" id="dbmsTopic" placeholder="Topic Name" style="margin-top: 6px;">
       </div>
 
-      <div class="course-group">
-        <h3>Today's Test / Course Status</h3>
-        
-        <!-- DBMS -->
-        <div class="field">
-          <label for="dbms">2028_DBMS Preparatory Course_Level 1</label>
-          <select id="dbms" onchange="toggleTopicBox('dbms', 'dbmsTopicBox', 'dbmsTopic')">
-            <option value="Pending" selected>Pending</option>
-            <option value="Completed">Completed</option>
-            <option value="In Progress">In Progress</option>
-          </select>
-          <div id="dbmsTopicBox" class="topic-box" style="display: none;">
-            <input type="text" id="dbmsTopic" placeholder="Enter topic covered (Mandatory)">
-          </div>
-        </div>
-
-        <!-- JAVA -->
-        <div class="field">
-          <label for="java">NeoPAT_Prepcourse_Java_Level 1</label>
-          <select id="java" onchange="toggleTopicBox('java', 'javaTopicBox', 'javaTopic')">
-            <option value="Pending" selected>Pending</option>
-            <option value="Completed">Completed</option>
-            <option value="In Progress">In Progress</option>
-          </select>
-          <div id="javaTopicBox" class="topic-box" style="display: none;">
-            <input type="text" id="javaTopic" placeholder="Enter topic covered (Mandatory)">
-          </div>
-        </div>
-
-        <!-- DSA -->
-        <div class="field">
-          <label for="dsa">NeoPAT_Prepcourse_DSA_Level 1</label>
-          <select id="dsa" onchange="toggleTopicBox('dsa', 'dsaTopicBox', 'dsaTopic')">
-            <option value="Pending" selected>Pending</option>
-            <option value="Completed">Completed</option>
-            <option value="In Progress">In Progress</option>
-          </select>
-          <div id="dsaTopicBox" class="topic-box" style="display: none;">
-            <input type="text" id="dsaTopic" placeholder="Enter topic covered (Mandatory)">
-          </div>
-        </div>
-
-        <!-- APTITUDE -->
-        <div class="field">
-          <label for="aptitude">NeoPAT_Aptitude Preparatory Course</label>
-          <select id="aptitude" onchange="toggleTopicBox('aptitude', 'aptiTopicBox', 'aptiTopic')">
-            <option value="Pending" selected>Pending</option>
-            <option value="Completed">Completed</option>
-            <option value="In Progress">In Progress</option>
-          </select>
-          <div id="aptiTopicBox" class="topic-box" style="display: none;">
-            <input type="text" id="aptiTopic" placeholder="Enter topic covered (Mandatory)">
-          </div>
-        </div>
+      <!-- Java -->
+      <div class="subject-box">
+        <div class="subject-title">Java</div>
+        <select id="javaStatus">
+          <option value="Pending">Pending</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Completed">Completed</option>
+        </select>
+        <input type="text" id="javaTopic" placeholder="Topic Name" style="margin-top: 6px;">
       </div>
 
-      <button type="submit" id="submitBtn">Submit Progress</button>
-    </form>
-    
-    <div id="msg"></div>
+      <!-- DSA -->
+      <div class="subject-box">
+        <div class="subject-title">DSA</div>
+        <select id="dsaStatus">
+          <option value="Pending">Pending</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Completed">Completed</option>
+        </select>
+        <input type="text" id="dsaTopic" placeholder="Topic Name" style="margin-top: 6px;">
+      </div>
+
+      <!-- Aptitude -->
+      <div class="subject-box">
+        <div class="subject-title">Aptitude</div>
+        <select id="aptiStatus">
+          <option value="Pending">Pending</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Completed">Completed</option>
+        </select>
+        <input type="text" id="aptiTopic" placeholder="Topic Name" style="margin-top: 6px;">
+      </div>
+    </div>
+
+    <button class="btn-submit" id="submitBtn" onclick="submitProgress()">Submit Today Progress</button>
+
+    <button class="btn-whatsapp" onclick="copyPendingListForWhatsApp()">
+      Copy Progress Summary for WhatsApp
+    </button>
   </div>
 
   <script src="script.js"></script>
