@@ -10,6 +10,25 @@ body {
   color: #334155;
 }
 
+/* Top Live Clock Bar */
+.top-header {
+  display: flex;
+  justify-content: flex-end;
+  max-width: 650px;
+  margin: 0 auto 10px auto;
+}
+
+.live-clock {
+  background: #0f172a;
+  color: #38bdf8;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  letter-spacing: 0.5px;
+}
+
 .container {
   max-width: 650px;
   margin: 0 auto;
@@ -86,21 +105,17 @@ input[type="text"]:focus, select:focus {
   box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
 }
 
-.student-name-badge {
-  font-weight: bold;
+.student-greeting-badge {
+  font-weight: 600;
   color: #2563eb;
   font-size: 14px;
-  margin-top: 4px;
+  margin-top: 8px;
   min-height: 20px;
-}
-
-.checkbox-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: #64748b;
-  margin-top: 6px;
+  background: #eff6ff;
+  padding: 8px;
+  border-radius: 6px;
+  border-left: 4px solid #2563eb;
+  display: none;
 }
 
 /* Subject Grid */
