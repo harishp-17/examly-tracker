@@ -114,23 +114,3 @@ function submitProgress() {
     alert("Submission failed. Please check internet connection.");
   });
 }
-
-// 5. WhatsApp Copy Button
-function copyPendingListForWhatsApp() {
-  fetch(SCRIPT_URL)
-    .then(res => res.json())
-    .then(data => {
-      if (data && data.studentMap) {
-        let today = new Date().toLocaleDateString('en-GB');
-        let text = `*VSB NEOPAT PROGRESS UPDATE (${today})*\n`;
-        text += `------------------------------------\n`;
-        text += `Total Submitted: ${data.submittedCount} / ${data.totalStudents}\n\n`;
-        text += `Kindly update your remaining progress ASAP!\n`;
-
-        navigator.clipboard.writeText(text).then(() => {
-          alert("WhatsApp Progress Summary Copied!");
-        });
-      }
-    });
-}
-}
