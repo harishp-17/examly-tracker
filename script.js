@@ -1,88 +1,142 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>III CSBS Examly Course Progress Tracker</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <div class="card">
-    <h2>Examly Daily Course Tracker</h2>
-    <p class="subtitle">III CSBS - Daily Progress Update</p>
+const SCRIPT_URL = "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE";
+
+document.addEventListener("DOMContentLoaded", function() {
+  const options = { year: 'numeric', month: 'short', day: 'numeric', weekday: 'short' };
+  document.getElementById("currentDate").innerText = new Date().toLocaleDateString('en-US', options);
+});
+
+// III CSBS Roll Number Range Validator
+function isValidCSBSRollNo(roll) {
+  const rollStr = roll.trim();
+  
+  // Lateral Entry Check
+  if (rollStr === "922524244501") return true;
+  
+  // Regular Batch Check (922524244002 to 922524244063)
+  if (rollStr.length === 12 && rollStr.startsWith("922524244")) {
+    const lastThree = parseInt(rollStr.slice(9), 10);
+    if (lastThree >= 2 && lastThree <= 63) {
+      return true;
+    }
+  }
+  
+  return false;
+}
+
+// Show/Hide Topic Box & Toggle Required Status
+function toggleTopicBox(selectId, boxId, inputId) {
+  const status = document.getElementById(selectId).value;
+  const topicBox = document.getElementById(boxId);
+  const topicInput = document.getElementById(inputId);
+  
+  if (status === "Completed" || status === "In Progress") {
+    topicBox.style.display = "block";
+    topicInput.setAttribute("required", "true");
+  } else {
+    topicBox.style.display = "none";
+    topicInput.removeAttribute("required");
+    topicInput.value = "";
+  }
+}
+
+document.getElementById("trackerForm").addEventListener("submit", function(e) {
+  e.preventDefault();
+  
+  const submitBtn = document.getElementById("submitBtn");
+  const msg = document.getElementById("msg");
+  msg.innerText = "";
+
+  const rollNo = document.getElementById("rollNo").value.trim();
+
+  // 1. Roll Number Range Validation
+  if (!isValidCSBSRollNo(rollNo)) {
+    msg.style.color = "#f87171";
+    msg.innerText = "Not a valid roll number from CSBS";
+    return false;
+  }
+
+  // 2. Mandatory Topic Check
+  const courses = [
+    { statusId: "dbms", topicId: "dbmsTopic", name: "DBMS" },
+    { statusId: "java", topicId: "javaTopic", name: "Java" },
+    { statusId: "dsa", topicId: "dsaTopic", name: "DSA" },
+    { statusId: "aptitude", topicId: "aptiTopic", name: "Aptitude" }
+  ];
+
+  for (let c of courses) {
+    const status = document.getElementById(c.statusId).value;
+    const topicInput = document.getElementById(c.topicId);
+    const topicVal = topicInput.value.trim();
     
-    <div class="date-badge">
-      <span>Date: </span><strong id="currentDate">Loading Date...</strong>
-    </div>
-    
-    <form id="trackerForm">
-      <div class="field">
-        <label for="rollNo">Register Number / Roll Number</label>
-        <input type="text" id="rollNo" placeholder="e.g. 922524244012" required>
-      </div>
+    if ((status === "Completed" || status === "In Progress") && topicVal === "") {
+      msg.style.color = "#f87171";
+      msg.innerText = `Please enter topic covered for ${c.name}!`;
+      topicInput.focus();
+      return false;
+    }
+  }
 
-      <div class="course-group">
-        <h3>Today's Test / Course Status</h3>
-        
-        <!-- DBMS -->
-        <div class="field">
-          <label for="dbms">2028_DBMS Preparatory Course_Level 1</label>
-          <select id="dbms" onchange="toggleTopicBox('dbms', 'dbmsTopicBox', 'dbmsTopic')">
-            <option value="Pending" selected>Pending</option>
-            <option value="Completed">Completed</option>
-            <option value="In Progress">In Progress</option>
-          </select>
-          <div id="dbmsTopicBox" class="topic-box" style="display: none;">
-            <input type="text" id="dbmsTopic" placeholder="Enter topic covered (Mandatory)">
-          </div>
-        </div>
+  submitBtn.innerText = "Submitting...";
+  submitBtn.disabled = true;
+  
+  const payload = {
+    rollNo: rollNo,
+    dbmsStatus: document.getElementById("dbms").value,
+    dbmsTopic: document.getElementById("dbmsTopic").value.trim(),
+    javaStatus: document.getElementById("java").value,
+    javaTopic: document.getElementById("javaTopic").value.trim(),
+    dsaStatus: document.getElementById("dsa").value,
+    dsaTopic: document.getElementById("dsaTopic").value.trim(),
+    aptiStatus: document.getElementById("aptitude").value,
+    aptiTopic: document.getElementById("aptiTopic").value.trim()
+  };
 
-        <!-- JAVA -->
-        <div class="field">
-          <label for="java">NeoPAT_Prepcourse_Java_Level 1</label>
-          <select id="java" onchange="toggleTopicBox('java', 'javaTopicBox', 'javaTopic')">
-            <option value="Pending" selected>Pending</option>
-            <option value="Completed">Completed</option>
-            <option value="In Progress">In Progress</option>
-          </select>
-          <div id="javaTopicBox" class="topic-box" style="display: none;">
-            <input type="text" id="javaTopic" placeholder="Enter topic covered (Mandatory)">
-          </div>
-        </div>
+  fetch(SCRIPT_URL, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify(payload)
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.result === "success") {
+      msg.style.color = "#4ade80";
+      msg.innerText = "Progress Updated Successfully!";
+      document.getElementById("trackerForm").reset();
+      document.querySelectorAll(".topic-box").forEach(el => el.style.display = "none");
+    } else if (data.result === "invalid_roll") {
+      msg.style.color = "#f87171";
+      msg.innerText = "Not a valid roll number from CSBS";
+    } else {
+      msg.style.color = "#f87171";
+      msg.innerText = "Error updating status. Try again!";
+    }
+  })
+  .catch(error => {
+    msg.style.color = "#f87171";
+    msg.innerText = "Connection error. Please try again!";
+  })
+  .finally(() => {
+    submitBtn.innerText = "Submit Progress";
+    submitBtn.disabled = false;
+  });
+});
 
-        <!-- DSA -->
-        <div class="field">
-          <label for="dsa">NeoPAT_Prepcourse_DSA_Level 1</label>
-          <select id="dsa" onchange="toggleTopicBox('dsa', 'dsaTopicBox', 'dsaTopic')">
-            <option value="Pending" selected>Pending</option>
-            <option value="Completed">Completed</option>
-            <option value="In Progress">In Progress</option>
-          </select>
-          <div id="dsaTopicBox" class="topic-box" style="display: none;">
-            <input type="text" id="dsaTopic" placeholder="Enter topic covered (Mandatory)">
-          </div>
-        </div>
+// Auto-refresh page at Night 11:00 PM
+function scheduleNightRefresh() {
+  const now = new Date();
+  const night11PM = new Date();
+  
+  night11PM.setHours(23, 0, 0, 0);
+  
+  let timeToRefresh = night11PM.getTime() - now.getTime();
+  
+  if (timeToRefresh < 0) {
+    timeToRefresh += 24 * 60 * 60 * 1000;
+  }
+  
+  setTimeout(() => {
+    location.reload();
+  }, timeToRefresh);
+}
 
-        <!-- APTITUDE -->
-        <div class="field">
-          <label for="aptitude">NeoPAT_Aptitude Preparatory Course</label>
-          <select id="aptitude" onchange="toggleTopicBox('aptitude', 'aptiTopicBox', 'aptiTopic')">
-            <option value="Pending" selected>Pending</option>
-            <option value="Completed">Completed</option>
-            <option value="In Progress">In Progress</option>
-          </select>
-          <div id="aptiTopicBox" class="topic-box" style="display: none;">
-            <input type="text" id="aptiTopic" placeholder="Enter topic covered (Mandatory)">
-          </div>
-        </div>
-      </div>
-
-      <button type="submit" id="submitBtn">Submit Progress</button>
-    </form>
-    
-    <div id="msg"></div>
-  </div>
-
-  <script src="script.js"></script>
-</body>
-</html>
+scheduleNightRefresh();
