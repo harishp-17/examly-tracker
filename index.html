@@ -8,6 +8,11 @@
 </head>
 <body>
 
+  <!-- Top Right Live Clock Bar -->
+  <div class="top-header">
+    <div class="live-clock" id="liveClock">Loading Clock...</div>
+  </div>
+
   <div class="container">
     <h2>VSB CSBS Neopat Tracker</h2>
 
@@ -25,12 +30,9 @@
     <!-- Student Details -->
     <div class="form-group">
       <label for="rollNoInput">Register Roll Number:</label>
-      <input type="text" id="rollNoInput" placeholder="Ex: 922524244xxx" maxlength="12" oninput="handleRollInput()">
-      <div id="studentNameDisplay" class="student-name-badge"></div>
-      <div class="checkbox-group">
-        <input type="checkbox" id="rememberRoll">
-        <label for="rememberRoll" style="margin: 0; cursor: pointer;">Remember my Roll Number</label>
-      </div>
+      <input type="text" id="rollNoInput" placeholder="Ex: 922524244012" maxlength="12" oninput="handleRollInput()">
+      <!-- Dynamic Hello Greeting Badge -->
+      <div id="studentGreetingBadge" class="student-greeting-badge"></div>
     </div>
 
     <!-- Course Progress Section -->
@@ -81,6 +83,7 @@
     </div>
 
     <button class="btn-submit" id="submitBtn" onclick="submitProgress()">Submit Today Progress</button>
+  </div>
 
   <script src="script.js"></script>
 </body>
