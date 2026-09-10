@@ -1,4 +1,9 @@
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxwW3coAMZZLNWnkZ9-jwSCCNej2NgK0lT7ZrKRIZNj0CW1-ho8E7KCDWbk9jn6COUj/exec";
+const SCRIPT_URL = "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE";
+
+document.addEventListener("DOMContentLoaded", function() {
+  const options = { year: 'numeric', month: 'short', day: 'numeric', weekday: 'short' };
+  document.getElementById("currentDate").innerText = new Date().toLocaleDateString('en-US', options);
+});
 
 document.getElementById("trackerForm").addEventListener("submit", function(e) {
   e.preventDefault();
@@ -20,18 +25,26 @@ document.getElementById("trackerForm").addEventListener("submit", function(e) {
 
   fetch(SCRIPT_URL, {
     method: "POST",
-    mode: "no-cors",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
     body: JSON.stringify(payload)
   })
-  .then(() => {
-    msg.style.color = "#4ade80";
-    msg.innerText = "Progress Updated Successfully in Google Sheet!";
-    document.getElementById("trackerForm").reset();
+  .then(response => response.json())
+  .then(data => {
+    if (data.result === "success") {
+      msg.style.color = "#4ade80";
+      msg.innerText = "Progress Updated Successfully!";
+      document.getElementById("trackerForm").reset();
+    } else if (data.result === "invalid_roll") {
+      msg.style.color = "#f87171";
+      msg.innerText = "Invalid Register Number! Please enter a valid III CSBS Roll No.";
+    } else {
+      msg.style.color = "#f87171";
+      msg.innerText = "Error updating status. Please try again.";
+    }
   })
   .catch(error => {
     msg.style.color = "#f87171";
-    msg.innerText = "Error updating status. Please try again.";
+    msg.innerText = "Connection error. Please try again!";
     console.error("Error:", error);
   })
   .finally(() => {
