@@ -1,142 +1,127 @@
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxwW3coAMZZLNWnkZ9-jwSCCNej2NgK0lT7ZrKRIZNj0CW1-ho8E7KCDWbk9jn6COUj/exec";
+let studentMap = {};
 
-document.addEventListener("DOMContentLoaded", function() {
-  const options = { year: 'numeric', month: 'short', day: 'numeric', weekday: 'short' };
-  document.getElementById("currentDate").innerText = new Date().toLocaleDateString('en-US', options);
-});
-
-// III CSBS Roll Number Range Validator
-function isValidCSBSRollNo(roll) {
-  const rollStr = roll.trim();
-  
-  // Lateral Entry Check
-  if (rollStr === "922524244501") return true;
-  
-  // Regular Batch Check (922524244002 to 922524244063)
-  if (rollStr.length === 12 && rollStr.startsWith("922524244")) {
-    const lastThree = parseInt(rollStr.slice(9), 10);
-    if (lastThree >= 2 && lastThree <= 63) {
-      return true;
-    }
+window.onload = function() {
+  // 1. Fetch Saved Roll Number from browser storage
+  const savedRoll = localStorage.getItem("vsb_saved_roll");
+  if (savedRoll) {
+    document.getElementById("rollNoInput").value = savedRoll;
+    document.getElementById("rememberRoll").checked = true;
   }
   
-  return false;
+  // 2. Fetch Dashboard Analytics Data
+  fetchAnalytics();
+};
+
+// Fetch Live Analytics Bar Data
+function fetchAnalytics() {
+  fetch(SCRIPT_URL)
+    .then(res => res.json())
+    .then(data => {
+      if (data) {
+        document.getElementById('submittedCount').innerText = data.submittedCount || 0;
+        document.getElementById('totalCount').innerText = data.totalStudents || 63;
+        
+        const total = data.totalStudents || 63;
+        const submitted = data.submittedCount || 0;
+        const percent = Math.round((submitted / total) * 100);
+        
+        document.getElementById('progressPercent').innerText = percent + "%";
+        document.getElementById('progressBar').style.width = percent + "%";
+
+        if (data.studentMap) {
+          studentMap = data.studentMap;
+          handleRollInput();
+        }
+      }
+    })
+    .catch(err => console.error("Error loading stats:", err));
 }
 
-// Show/Hide Topic Box & Toggle Required Status
-function toggleTopicBox(selectId, boxId, inputId) {
-  const status = document.getElementById(selectId).value;
-  const topicBox = document.getElementById(boxId);
-  const topicInput = document.getElementById(inputId);
-  
-  if (status === "Completed" || status === "In Progress") {
-    topicBox.style.display = "block";
-    topicInput.setAttribute("required", "true");
+// Auto Suggest Name on Typing Roll No
+function handleRollInput() {
+  const rollVal = document.getElementById('rollNoInput').value.trim();
+  const nameDisplay = document.getElementById('studentNameDisplay');
+
+  if (studentMap[rollVal]) {
+    nameDisplay.innerText = "Student Name: " + studentMap[rollVal];
+  } else if (rollVal.length >= 4) {
+    nameDisplay.innerText = "Searching Student...";
   } else {
-    topicBox.style.display = "none";
-    topicInput.removeAttribute("required");
-    topicInput.value = "";
+    nameDisplay.innerText = "";
   }
 }
 
-document.getElementById("trackerForm").addEventListener("submit", function(e) {
-  e.preventDefault();
-  
+// Form Submit Handler
+function submitProgress() {
+  const rollNo = document.getElementById("rollNoInput").value.trim();
+  const rememberChecked = document.getElementById("rememberRoll").checked;
+
+  if (!rollNo) {
+    alert("Please enter your Roll Number!");
+    return;
+  }
+
+  if (rememberChecked) {
+    localStorage.setItem("vsb_saved_roll", rollNo);
+  } else {
+    localStorage.removeItem("vsb_saved_roll");
+  }
+
   const submitBtn = document.getElementById("submitBtn");
-  const msg = document.getElementById("msg");
-  msg.innerText = "";
-
-  const rollNo = document.getElementById("rollNo").value.trim();
-
-  // 1. Roll Number Range Validation
-  if (!isValidCSBSRollNo(rollNo)) {
-    msg.style.color = "#f87171";
-    msg.innerText = "Not a valid roll number from CSBS";
-    return false;
-  }
-
-  // 2. Mandatory Topic Check
-  const courses = [
-    { statusId: "dbms", topicId: "dbmsTopic", name: "DBMS" },
-    { statusId: "java", topicId: "javaTopic", name: "Java" },
-    { statusId: "dsa", topicId: "dsaTopic", name: "DSA" },
-    { statusId: "aptitude", topicId: "aptiTopic", name: "Aptitude" }
-  ];
-
-  for (let c of courses) {
-    const status = document.getElementById(c.statusId).value;
-    const topicInput = document.getElementById(c.topicId);
-    const topicVal = topicInput.value.trim();
-    
-    if ((status === "Completed" || status === "In Progress") && topicVal === "") {
-      msg.style.color = "#f87171";
-      msg.innerText = `Please enter topic covered for ${c.name}!`;
-      topicInput.focus();
-      return false;
-    }
-  }
-
   submitBtn.innerText = "Submitting...";
   submitBtn.disabled = true;
-  
+
   const payload = {
     rollNo: rollNo,
-    dbmsStatus: document.getElementById("dbms").value,
-    dbmsTopic: document.getElementById("dbmsTopic").value.trim(),
-    javaStatus: document.getElementById("java").value,
-    javaTopic: document.getElementById("javaTopic").value.trim(),
-    dsaStatus: document.getElementById("dsa").value,
-    dsaTopic: document.getElementById("dsaTopic").value.trim(),
-    aptiStatus: document.getElementById("aptitude").value,
-    aptiTopic: document.getElementById("aptiTopic").value.trim()
+    dbmsStatus: document.getElementById("dbmsStatus").value,
+    dbmsTopic: document.getElementById("dbmsTopic").value.trim() || "-",
+    javaStatus: document.getElementById("javaStatus").value,
+    javaTopic: document.getElementById("javaTopic").value.trim() || "-",
+    dsaStatus: document.getElementById("dsaStatus").value,
+    dsaTopic: document.getElementById("dsaTopic").value.trim() || "-",
+    aptiStatus: document.getElementById("aptiStatus").value,
+    aptiTopic: document.getElementById("aptiTopic").value.trim() || "-"
   };
 
   fetch(SCRIPT_URL, {
     method: "POST",
-    headers: { "Content-Type": "text/plain;charset=utf-8" },
     body: JSON.stringify(payload)
   })
-  .then(response => response.json())
+  .then(res => res.json())
   .then(data => {
+    submitBtn.disabled = false;
+    submitBtn.innerText = "Submit Today Progress";
+
     if (data.result === "success") {
-      msg.style.color = "#4ade80";
-      msg.innerText = "Progress Updated Successfully!";
-      document.getElementById("trackerForm").reset();
-      document.querySelectorAll(".topic-box").forEach(el => el.style.display = "none");
-    } else if (data.result === "invalid_roll") {
-      msg.style.color = "#f87171";
-      msg.innerText = "Not a valid roll number from CSBS";
+      alert("Progress Updated Successfully!");
+      fetchAnalytics();
     } else {
-      msg.style.color = "#f87171";
-      msg.innerText = "Error updating status. Try again!";
+      alert("Invalid Roll Number! Please check your details.");
     }
   })
-  .catch(error => {
-    msg.style.color = "#f87171";
-    msg.innerText = "Connection error. Please try again!";
-  })
-  .finally(() => {
-    submitBtn.innerText = "Submit Progress";
+  .catch(err => {
     submitBtn.disabled = false;
+    submitBtn.innerText = "Submit Today Progress";
+    alert("Submission failed. Please check internet connection.");
   });
-});
-
-// Auto-refresh page at Night 11:00 PM
-function scheduleNightRefresh() {
-  const now = new Date();
-  const night11PM = new Date();
-  
-  night11PM.setHours(23, 0, 0, 0);
-  
-  let timeToRefresh = night11PM.getTime() - now.getTime();
-  
-  if (timeToRefresh < 0) {
-    timeToRefresh += 24 * 60 * 60 * 1000;
-  }
-  
-  setTimeout(() => {
-    location.reload();
-  }, timeToRefresh);
 }
 
-scheduleNightRefresh();
+// WhatsApp Copy Button
+function copyPendingListForWhatsApp() {
+  fetch(SCRIPT_URL)
+    .then(res => res.json())
+    .then(data => {
+      if (data && data.studentMap) {
+        let today = new Date().toLocaleDateString('en-GB');
+        let text = `*VSB NEOPAT PROGRESS UPDATE (${today})*\n`;
+        text += `------------------------------------\n`;
+        text += `Total Submitted: ${data.submittedCount} / ${data.totalStudents}\n\n`;
+        text += `Kindly update your remaining progress ASAP!\n`;
+
+        navigator.clipboard.writeText(text).then(() => {
+          alert("WhatsApp Progress Summary Copied!");
+        });
+      }
+    });
+}
