@@ -1,184 +1,88 @@
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxwW3coAMZZLNWnkZ9-jwSCCNej2NgK0lT7ZrKRIZNj0CW1-ho8E7KCDWbk9jn6COUj/exec";
-document.addEventListener("DOMContentLoaded", function() {
-  const options = { year: 'numeric', month: 'short', day: 'numeric', weekday: 'short' };
-  document.getElementById("currentDate").innerText = new Date().toLocaleDateString('en-US', options);
-});
-
-// Show/Hide Topic Box & Auto Set Required
-function toggleTopicBox(selectId, boxId) {
-  const status = document.getElementById(selectId).value;
-  const topicBox = document.getElementById(boxId);
-  const topicInput = topicBox.querySelector("input");
-  
-  if (status === "Completed" || status === "In Progress") {
-    topicBox.style.display = "block";
-    topicInput.required = true;
-  } else {
-    topicBox.style.display = "none";
-    topicInput.required = false;
-    topicInput.value = "";
-  }
-}
-
-document.getElementById("trackerForm").addEventListener("submit", function(e) {
-  e.preventDefault();
-  
-  const submitBtn = document.getElementById("submitBtn");
-  const msg = document.getElementById("msg");
-  msg.innerText = "";
-
-  // Mandatory Topic Check
-  const courseList = [
-    { statusId: "dbms", topicId: "dbmsTopic", name: "DBMS" },
-    { statusId: "java", topicId: "javaTopic", name: "Java" },
-    { statusId: "dsa", topicId: "dsaTopic", name: "DSA" },
-    { statusId: "aptitude", topicId: "aptiTopic", name: "Aptitude" }
-  ];
-
-  for (let c of courseList) {
-    const status = document.getElementById(c.statusId).value;
-    const topic = document.getElementById(c.topicId).value.trim();
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>III CSBS Examly Course Progress Tracker</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="card">
+    <h2>Examly Daily Course Tracker</h2>
+    <p class="subtitle">III CSBS - Daily Progress Update</p>
     
-    if ((status === "Completed" || status === "In Progress") && topic === "") {
-      msg.style.color = "#f87171";
-      msg.innerText = `Please enter the topic covered for ${c.name}!`;
-      document.getElementById(c.topicId).focus();
-      return; // Stop Submission
-    }
-  }
+    <div class="date-badge">
+      <span>Date: </span><strong id="currentDate">Loading Date...</strong>
+    </div>
+    
+    <form id="trackerForm">
+      <div class="field">
+        <label for="rollNo">Register Number / Roll Number</label>
+        <input type="text" id="rollNo" placeholder="e.g. 922524244012" required>
+      </div>
 
-  submitBtn.innerText = "Submitting...";
-  submitBtn.disabled = true;
-  
-  const payload = {
-    rollNo: document.getElementById("rollNo").value.trim(),
-    dbmsStatus: document.getElementById("dbms").value,
-    dbmsTopic: document.getElementById("dbmsTopic").value.trim(),
-    javaStatus: document.getElementById("java").value,
-    javaTopic: document.getElementById("javaTopic").value.trim(),
-    dsaStatus: document.getElementById("dsa").value,
-    dsaTopic: document.getElementById("dsaTopic").value.trim(),
-    aptiStatus: document.getElementById("aptitude").value,
-    aptiTopic: document.getElementById("aptiTopic").value.trim()
-  };
+      <div class="course-group">
+        <h3>Today's Test / Course Status</h3>
+        
+        <!-- DBMS -->
+        <div class="field">
+          <label for="dbms">2028_DBMS Preparatory Course_Level 1</label>
+          <select id="dbms" onchange="toggleTopicBox('dbms', 'dbmsTopicBox', 'dbmsTopic')">
+            <option value="Pending" selected>Pending</option>
+            <option value="Completed">Completed</option>
+            <option value="In Progress">In Progress</option>
+          </select>
+          <div id="dbmsTopicBox" class="topic-box" style="display: none;">
+            <input type="text" id="dbmsTopic" placeholder="Enter topic covered (Mandatory)">
+          </div>
+        </div>
 
-  fetch(SCRIPT_URL, {
-    method: "POST",
-    headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify(payload)
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.result === "success") {
-      msg.style.color = "#4ade80";
-      msg.innerText = "Progress Updated Successfully!";
-      document.getElementById("trackerForm").reset();
-      document.querySelectorAll(".topic-box").forEach(el => el.style.display = "none");
-    } else if (data.result === "invalid_roll") {
-      msg.style.color = "#f87171";
-      msg.innerText = "Invalid Register Number! Enter a valid III CSBS Roll No.";
-    } else {
-      msg.style.color = "#f87171";
-      msg.innerText = "Error updating status. Try again!";
-    }
-  })
-  .catch(error => {
-    msg.style.color = "#f87171";
-    msg.innerText = "Connection error. Please try again!";
-  })
-  .finally(() => {
-    submitBtn.innerText = "Submit Progress";
-    submitBtn.disabled = false;
-  });
-});
-document.addEventListener("DOMContentLoaded", function() {
-  const options = { year: 'numeric', month: 'short', day: 'numeric', weekday: 'short' };
-  document.getElementById("currentDate").innerText = new Date().toLocaleDateString('en-US', options);
-});
+        <!-- JAVA -->
+        <div class="field">
+          <label for="java">NeoPAT_Prepcourse_Java_Level 1</label>
+          <select id="java" onchange="toggleTopicBox('java', 'javaTopicBox', 'javaTopic')">
+            <option value="Pending" selected>Pending</option>
+            <option value="Completed">Completed</option>
+            <option value="In Progress">In Progress</option>
+          </select>
+          <div id="javaTopicBox" class="topic-box" style="display: none;">
+            <input type="text" id="javaTopic" placeholder="Enter topic covered (Mandatory)">
+          </div>
+        </div>
 
-// Show/Hide Topic Description Box
-function toggleTopicBox(selectId, boxId) {
-  const status = document.getElementById(selectId).value;
-  const topicBox = document.getElementById(boxId);
-  if (status === "Completed" || status === "In Progress") {
-    topicBox.style.display = "block";
-  } else {
-    topicBox.style.display = "none";
-    document.getElementById(boxId).querySelector("input").value = "";
-  }
-}
+        <!-- DSA -->
+        <div class="field">
+          <label for="dsa">NeoPAT_Prepcourse_DSA_Level 1</label>
+          <select id="dsa" onchange="toggleTopicBox('dsa', 'dsaTopicBox', 'dsaTopic')">
+            <option value="Pending" selected>Pending</option>
+            <option value="Completed">Completed</option>
+            <option value="In Progress">In Progress</option>
+          </select>
+          <div id="dsaTopicBox" class="topic-box" style="display: none;">
+            <input type="text" id="dsaTopic" placeholder="Enter topic covered (Mandatory)">
+          </div>
+        </div>
 
-document.getElementById("trackerForm").addEventListener("submit", function(e) {
-  e.preventDefault();
-  
-  const submitBtn = document.getElementById("submitBtn");
-  const msg = document.getElementById("msg");
-  
-  submitBtn.innerText = "Submitting...";
-  submitBtn.disabled = true;
-  msg.innerText = "";
-  
-  const payload = {
-    rollNo: document.getElementById("rollNo").value.trim(),
-    dbmsStatus: document.getElementById("dbms").value,
-    dbmsTopic: document.getElementById("dbmsTopic").value.trim(),
-    javaStatus: document.getElementById("java").value,
-    javaTopic: document.getElementById("javaTopic").value.trim(),
-    dsaStatus: document.getElementById("dsa").value,
-    dsaTopic: document.getElementById("dsaTopic").value.trim(),
-    aptiStatus: document.getElementById("aptitude").value,
-    aptiTopic: document.getElementById("aptiTopic").value.trim()
-  };
+        <!-- APTITUDE -->
+        <div class="field">
+          <label for="aptitude">NeoPAT_Aptitude Preparatory Course</label>
+          <select id="aptitude" onchange="toggleTopicBox('aptitude', 'aptiTopicBox', 'aptiTopic')">
+            <option value="Pending" selected>Pending</option>
+            <option value="Completed">Completed</option>
+            <option value="In Progress">In Progress</option>
+          </select>
+          <div id="aptiTopicBox" class="topic-box" style="display: none;">
+            <input type="text" id="aptiTopic" placeholder="Enter topic covered (Mandatory)">
+          </div>
+        </div>
+      </div>
 
-  fetch(SCRIPT_URL, {
-    method: "POST",
-    headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify(payload)
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.result === "success") {
-      msg.style.color = "#4ade80";
-      msg.innerText = "Progress Updated Successfully!";
-      document.getElementById("trackerForm").reset();
-      
-      // Hide all topic boxes after reset
-      document.querySelectorAll(".topic-box").forEach(el => el.style.display = "none");
-    } else if (data.result === "invalid_roll") {
-      msg.style.color = "#f87171";
-      msg.innerText = "Invalid Register Number! Enter a valid III CSBS Roll No.";
-    } else {
-      msg.style.color = "#f87171";
-      msg.innerText = "Error updating status. Try again!";
-    }
-  })
-  .catch(error => {
-    msg.style.color = "#f87171";
-    msg.innerText = "Connection error. Please try again!";
-    console.error("Error:", error);
-  })
-  .finally(() => {
-    submitBtn.innerText = "Submit Progress";
-    submitBtn.disabled = false;
-  });
-});
+      <button type="submit" id="submitBtn">Submit Progress</button>
+    </form>
+    
+    <div id="msg"></div>
+  </div>
 
-function scheduleNightRefresh() {
-  const now = new Date();
-  const night11PM = new Date();
-  
-  night11PM.setHours(23, 0, 0, 0); // 11:00:00 PM
-  
-  let timeToRefresh = night11PM.getTime() - now.getTime();
-  
-  if (timeToRefresh < 0) {
-    // If it's already past 11 PM today, schedule for 11 PM tomorrow
-    timeToRefresh += 24 * 60 * 60 * 1000;
-  }
-  
-  setTimeout(() => {
-    location.reload();
-  }, timeToRefresh);
-}
-
-scheduleNightRefresh();
+  <script src="script.js"></script>
+</body>
+</html>
