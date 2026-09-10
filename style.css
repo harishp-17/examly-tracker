@@ -1,0 +1,14 @@
+* { box-sizing: border-box; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+body { background: #0b0f19; color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+.card { background: #1e293b; padding: 2.5rem; border-radius: 16px; width: 100%; max-width: 500px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5); border: 1px solid #334155; }
+h2 { color: #38bdf8; text-align: center; margin: 0 0 4px 0; font-size: 1.5rem; }
+.subtitle { text-align: center; color: #94a3b8; margin-top: 0; font-size: 0.9rem; margin-bottom: 1.5rem; }
+.course-group { background: #0f172a; padding: 1.2rem; border-radius: 10px; margin: 1.2rem 0; border: 1px solid #1e293b; }
+.course-group h3 { color: #e2e8f0; font-size: 1rem; margin-top: 0; margin-bottom: 1rem; border-bottom: 1px solid #334155; padding-bottom: 8px; }
+.field { margin-bottom: 1rem; }
+label { display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: #cbd5e1; }
+input, select { width: 100%; padding: 0.7rem; border-radius: 8px; border: 1px solid #334155; background: #1e293b; color: #fff; outline: none; font-size: 0.95rem; }
+input:focus, select:focus { border-color: #38bdf8; }
+button { width: 100%; padding: 0.8rem; background: #0284c7; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 1rem; margin-top: 1rem; transition: 0.2s; }
+button:hover { background: #0369a1; }
+#msg { margin-top: 1rem; text-align: center; font-size: 0.95rem; font-weight: 500; }

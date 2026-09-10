@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>III CSBS Examly Course Progress Tracker</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="card">
+    <h2>Examly Daily Course Tracker</h2>
+    <p class="subtitle">III CSBS - Daily Progress Update</p>
+    
+    <form id="trackerForm">
+      <div class="field">
+        <label for="rollNo">Register Number / Roll Number</label>
+        <input type="text" id="rollNo" placeholder="e.g. 922524244012" required>
+      </div>
+
+      <div class="course-group">
+        <h3>Today's Test / Course Status</h3>
+        
+        <div class="field">
+          <label for="dbms">2028_DBMS Preparatory Course_Level 1</label>
+          <select id="dbms">
+            <option value="Completed">Completed</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Pending" selected>Pending</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="java">NeoPAT_Prepcourse_Java_Level 1</label>
+          <select id="java">
+            <option value="Completed">Completed</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Pending" selected>Pending</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="dsa">NeoPAT_Prepcourse_DSA_Level 1</label>
+          <select id="dsa">
+            <option value="Completed">Completed</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Pending" selected>Pending</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="aptitude">NeoPAT_Aptitude Preparatory Course</label>
+          <select id="aptitude">
+            <option value="Completed">Completed</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Pending" selected>Pending</option>
+          </select>
+        </div>
+      </div>
+
+      <button type="submit" id="submitBtn">Submit Progress</button>
+    </form>
+    
+    <div id="msg"></div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
