@@ -162,3 +162,23 @@ document.getElementById("trackerForm").addEventListener("submit", function(e) {
     submitBtn.disabled = false;
   });
 });
+
+function scheduleNightRefresh() {
+  const now = new Date();
+  const night11PM = new Date();
+  
+  night11PM.setHours(23, 0, 0, 0); // 11:00:00 PM
+  
+  let timeToRefresh = night11PM.getTime() - now.getTime();
+  
+  if (timeToRefresh < 0) {
+    // If it's already past 11 PM today, schedule for 11 PM tomorrow
+    timeToRefresh += 24 * 60 * 60 * 1000;
+  }
+  
+  setTimeout(() => {
+    location.reload();
+  }, timeToRefresh);
+}
+
+scheduleNightRefresh();
