@@ -27,52 +27,52 @@
         <!-- DBMS -->
         <div class="field">
           <label for="dbms">2028_DBMS Preparatory Course_Level 1</label>
-          <select id="dbms" onchange="toggleTopicBox('dbms', 'dbmsTopicBox')">
+          <select id="dbms" onchange="toggleTopicBox('dbms', 'dbmsTopicBox', 'dbmsTopic')">
             <option value="Pending" selected>Pending</option>
             <option value="Completed">Completed</option>
             <option value="In Progress">In Progress</option>
           </select>
           <div id="dbmsTopicBox" class="topic-box" style="display: none;">
-            <input type="text" id="dbmsTopic" placeholder="Enter topic covered (e.g. SQL Joins, Normalization)">
+            <input type="text" id="dbmsTopic" placeholder="Enter topic covered (Mandatory)">
           </div>
         </div>
 
         <!-- JAVA -->
         <div class="field">
           <label for="java">NeoPAT_Prepcourse_Java_Level 1</label>
-          <select id="java" onchange="toggleTopicBox('java', 'javaTopicBox')">
+          <select id="java" onchange="toggleTopicBox('java', 'javaTopicBox', 'javaTopic')">
             <option value="Pending" selected>Pending</option>
             <option value="Completed">Completed</option>
             <option value="In Progress">In Progress</option>
           </select>
           <div id="javaTopicBox" class="topic-box" style="display: none;">
-            <input type="text" id="javaTopic" placeholder="Enter topic covered (e.g. OOPs, Interfaces)">
+            <input type="text" id="javaTopic" placeholder="Enter topic covered (Mandatory)">
           </div>
         </div>
 
         <!-- DSA -->
         <div class="field">
           <label for="dsa">NeoPAT_Prepcourse_DSA_Level 1</label>
-          <select id="dsa" onchange="toggleTopicBox('dsa', 'dsaTopicBox')">
+          <select id="dsa" onchange="toggleTopicBox('dsa', 'dsaTopicBox', 'dsaTopic')">
             <option value="Pending" selected>Pending</option>
             <option value="Completed">Completed</option>
             <option value="In Progress">In Progress</option>
           </select>
           <div id="dsaTopicBox" class="topic-box" style="display: none;">
-            <input type="text" id="dsaTopic" placeholder="Enter topic covered (e.g. Binary Search, Arrays)">
+            <input type="text" id="dsaTopic" placeholder="Enter topic covered (Mandatory)">
           </div>
         </div>
 
         <!-- APTITUDE -->
         <div class="field">
           <label for="aptitude">NeoPAT_Aptitude Preparatory Course</label>
-          <select id="aptitude" onchange="toggleTopicBox('aptitude', 'aptiTopicBox')">
+          <select id="aptitude" onchange="toggleTopicBox('aptitude', 'aptiTopicBox', 'aptiTopic')">
             <option value="Pending" selected>Pending</option>
             <option value="Completed">Completed</option>
             <option value="In Progress">In Progress</option>
           </select>
           <div id="aptiTopicBox" class="topic-box" style="display: none;">
-            <input type="text" id="aptiTopic" placeholder="Enter topic covered (e.g. Time & Work, Speed)">
+            <input type="text" id="aptiTopic" placeholder="Enter topic covered (Mandatory)">
           </div>
         </div>
       </div>
