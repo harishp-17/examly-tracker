@@ -45,8 +45,20 @@ function fetchAnalytics() {
         document.getElementById('progressPercent').innerText = percent + "%";
         document.getElementById('progressBar').style.width = percent + "%";
 
-        if (data.studentMap) studentMap = data.studentMap;
-        if (data.todaySubmittedMap) todaySubmittedMap = data.todaySubmittedMap;
+        // Convert all Keys to String to avoid String vs Number mismatches
+        if (data.studentMap) {
+          studentMap = {};
+          Object.keys(data.studentMap).forEach(key => {
+            studentMap[String(key).trim()] = data.studentMap[key];
+          });
+        }
+
+        if (data.todaySubmittedMap) {
+          todaySubmittedMap = {};
+          Object.keys(data.todaySubmittedMap).forEach(key => {
+            todaySubmittedMap[String(key).trim()] = data.todaySubmittedMap[key];
+          });
+        }
 
         handleRollInput();
       }
@@ -63,35 +75,35 @@ function handleRollInput() {
 
   if (!rollInput || !greetingBox) return;
 
-  const rollVal = rollInput.value.trim();
+  const rollVal = String(rollInput.value).trim();
 
   if (studentMap[rollVal]) {
     const name = studentMap[rollVal];
     greetingBox.innerText = `Hello ${name}, please update your Daily Progress!`;
     greetingBox.style.display = "block";
-    historyBtn.style.display = "block"; // Show 15-Day History Button
+    if (historyBtn) historyBtn.style.display = "block"; // Show 15-Day History Button
 
-    // Duplicate Check
+    // Duplicate Check (Checked against String key)
     if (todaySubmittedMap[rollVal]) {
       warningBox.className = "submission-status-badge status-submitted";
-      warningBox.innerText = `⚠️ You already submitted today! Submitting again will update your topics.`;
+      warningBox.innerText = `You already submitted today! Submitting again will update your topics.`;
       warningBox.style.display = "block";
     } else {
       warningBox.className = "submission-status-badge status-pending";
-      warningBox.innerText = `✅ You have not submitted today yet.`;
+      warningBox.innerText = `You have not submitted today yet.`;
       warningBox.style.display = "block";
     }
 
   } else {
     greetingBox.style.display = "none";
     warningBox.style.display = "none";
-    historyBtn.style.display = "none";
+    if (historyBtn) historyBtn.style.display = "none";
   }
 }
 
 // 4. Open 15-Day History & Streak Modal
 function openHistoryModal() {
-  const rollVal = document.getElementById('rollNoInput').value.trim();
+  const rollVal = String(document.getElementById('rollNoInput').value).trim();
   if (!rollVal || !studentMap[rollVal]) return;
 
   const modal = document.getElementById('historyModal');
@@ -133,7 +145,7 @@ function openHistoryModal() {
           </div>
 
           <div class="streak-badge-card">
-            🔥 Current Continuous Streak: <strong>${streak} Days</strong>
+            Current Continuous Streak: <strong>${streak} Days</strong>
           </div>
 
           <h4 style="margin-bottom:8px; font-size:14px; color:#334155;">Last 15 Days Progress History</h4>
@@ -176,7 +188,7 @@ function isValidTopicName(topicText) {
 
 // 5. Submit Handler with Register Number & Multi-Course Topic Validation
 function submitProgress() {
-  const rollNo = document.getElementById("rollNoInput").value.trim();
+  const rollNo = String(document.getElementById("rollNoInput").value).trim();
 
   // 1. Check if Register Number is empty
   if (!rollNo) {
@@ -262,6 +274,9 @@ function submitProgress() {
     submitBtn.innerText = "Submit Today Progress";
 
     if (data.result === "success") {
+      // Mark as submitted locally so badge updates immediately
+      todaySubmittedMap[rollNo] = true;
+
       const name = studentMap[rollNo] || "Student";
       alert(`🎉 Progress Updated Successfully!\n\n${name}, you are person #${data.submissionOrder} to submit today!`);
       
