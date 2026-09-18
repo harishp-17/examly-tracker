@@ -166,22 +166,29 @@ function closeHistoryModal() {
   document.getElementById('historyModal').style.display = "none";
 }
 
-// Helper Function: Validation for Topic Name
+// Helper Function: Validation for Topic Name (Must contain at least 2 alphabetic characters)
 function isValidTopicName(topicText) {
   if (!topicText) return false;
   const cleanText = topicText.trim();
-  
-  // Rule: Minimum 2 alphabetic letters (A-Z or a-z) irukkanum
   const alphabetCount = (cleanText.match(/[a-zA-Z]/g) || []).length;
   return alphabetCount >= 2;
 }
 
-// 5. Submit Handler with Strict Topic Validation
+// 5. Submit Handler with Register Number & Multi-Course Topic Validation
 function submitProgress() {
   const rollNo = document.getElementById("rollNoInput").value.trim();
 
+  // 1. Check if Register Number is empty
   if (!rollNo) {
-    alert("Please enter your Roll Number!");
+    alert("❌ Please enter your Register / Roll Number!");
+    document.getElementById("rollNoInput").focus();
+    return;
+  }
+
+  // 2. Check if Register Number exists in the student database
+  if (!studentMap[rollNo]) {
+    alert("❌ Invalid Register Number! Please enter a valid registered student Roll Number.");
+    document.getElementById("rollNoInput").focus();
     return;
   }
 
@@ -198,34 +205,34 @@ function submitProgress() {
   const aptiStatus = document.getElementById("aptiStatus").value;
   const aptiTopic = document.getElementById("aptiTopic").value.trim();
 
-  // Check if everything is pending
+  // Check if all statuses are pending
   if (dbmsStatus === "Pending" && javaStatus === "Pending" && dsaStatus === "Pending" && aptiStatus === "Pending") {
-    alert("⚠️ Please update progress for at least 1 course before submitting!");
+    alert("⚠️ Please update progress for at least one course before submitting!");
     return;
   }
 
-  // Validation Check for Completed or In Progress
+  // Collect error messages for all course validation failures
+  let errorMessages = [];
+
   if ((dbmsStatus === "Completed" || dbmsStatus === "In Progress") && !isValidTopicName(dbmsTopic)) {
-    alert("❌ Invalid DBMS Topic! Verum symbols/numbers accept aagadhu, valid topic name type pannunga.");
-    document.getElementById("dbmsTopic").focus();
-    return;
+    errorMessages.push("• DBMS: Please enter a valid topic name. Symbols or numbers alone are not allowed.");
   }
 
   if ((javaStatus === "Completed" || javaStatus === "In Progress") && !isValidTopicName(javaTopic)) {
-    alert("❌ Invalid Java Topic! Verum symbols/numbers accept aagadhu, valid topic name type pannunga.");
-    document.getElementById("javaTopic").focus();
-    return;
+    errorMessages.push("• Java: Please enter a valid topic name. Symbols or numbers alone are not allowed.");
   }
 
   if ((dsaStatus === "Completed" || dsaStatus === "In Progress") && !isValidTopicName(dsaTopic)) {
-    alert("❌ Invalid DSA Topic! Verum symbols/numbers accept aagadhu, valid topic name type pannunga.");
-    document.getElementById("dsaTopic").focus();
-    return;
+    errorMessages.push("• DSA: Please enter a valid topic name. Symbols or numbers alone are not allowed.");
   }
 
   if ((aptiStatus === "Completed" || aptiStatus === "In Progress") && !isValidTopicName(aptiTopic)) {
-    alert("❌ Invalid Aptitude Topic! Verum symbols/numbers accept aagadhu, valid topic name type pannunga.");
-    document.getElementById("aptiTopic").focus();
+    errorMessages.push("• Aptitude: Please enter a valid topic name. Symbols or numbers alone are not allowed.");
+  }
+
+  // If any course has topic validation errors, display all of them together
+  if (errorMessages.length > 0) {
+    alert("❌ Validation Errors Found:\n\n" + errorMessages.join("\n"));
     return;
   }
 
@@ -275,12 +282,12 @@ function submitProgress() {
 
       fetchAnalytics();
     } else {
-      alert("Invalid Roll Number! Please check your details.");
+      alert("❌ Invalid Register Number! Please check your details.");
     }
   })
   .catch(err => {
     submitBtn.disabled = false;
     submitBtn.innerText = "Submit Today Progress";
-    alert("Submission failed. Please check internet connection.");
+    alert("❌ Submission failed. Please check your internet connection.");
   });
 }
