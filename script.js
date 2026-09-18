@@ -29,8 +29,7 @@ function startLiveClock() {
     const timeStr = now.toLocaleTimeString('en-US', { hour12: true });
 
     clockElement.innerText = `${dayName}, ${dateStr} | ${timeStr}`;
-  }
-  
+  }  
   updateClock();
   setInterval(updateClock, 1000);
 }
@@ -70,21 +69,23 @@ function fetchAnalytics() {
     .catch(err => console.error("Error loading stats:", err));
 }
 
-// 3. Dynamic Student Name Greeting
+// 3. Dynamic Student Name Greeting (FIXED UI IDs)
 function handleRollInput() {
   const rollInput = document.getElementById('rollNoInput');
-  const greetingBox = document.getElementById('studentGreetingBadge');
+  const greetingWrapper = document.getElementById('studentNameWrapper');
+  const studentNameSpan = document.getElementById('studentName');
 
-  if (!rollInput || !greetingBox) return;
+  if (!rollInput || !greetingWrapper || !studentNameSpan) return;
 
   const rollVal = String(rollInput.value).trim();
 
   if (rollVal !== "" && studentMap[rollVal]) {
     const name = studentMap[rollVal];
-    greetingBox.innerText = `Hello ${name}, please update your Daily Progress!`;
-    greetingBox.style.display = "block";
+    studentNameSpan.innerText = name;
+    greetingWrapper.style.display = "block";
   } else {
-    greetingBox.style.display = "none";
+    greetingWrapper.style.display = "none";
+    studentNameSpan.innerText = "";
   }
 }
 
@@ -96,7 +97,7 @@ function isValidTopicName(topicText) {
   return alphabetCount >= 2;
 }
 
-// 4. Submit Handler
+// 4. Submit Handler (FIXED CORS & Reset UI)
 function submitProgress() {
   const rollNoInput = document.getElementById("rollNoInput");
   const rollNo = String(rollNoInput.value).trim();
@@ -168,8 +169,6 @@ function submitProgress() {
 
   fetch(SCRIPT_URL, {
     method: "POST",
-    mode: "cors",
-    redirect: "follow",
     headers: {
       "Content-Type": "text/plain;charset=utf-8"
     },
@@ -184,8 +183,10 @@ function submitProgress() {
       const name = studentMap[rollNo] || "Student";
       alert(`🎉 Progress Updated Successfully!\n\n${name}, you are person #${data.submissionOrder} to submit today!`);
       
+      // Reset Inputs and Badges
       rollNoInput.value = "";
-      if (document.getElementById("studentGreetingBadge")) document.getElementById("studentGreetingBadge").style.display = "none";
+      const wrapper = document.getElementById("studentNameWrapper");
+      if (wrapper) wrapper.style.display = "none";
 
       document.getElementById("dbmsStatus").value = "Pending";
       document.getElementById("javaStatus").value = "Pending";
