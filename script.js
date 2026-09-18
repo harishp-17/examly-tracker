@@ -1,13 +1,13 @@
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzqgrEdnWDCRLKyOW40152SMcXObcaF3lBb7Wlyc-zBkBIag4pyVwnHE4otSOYK4XY/exec";
+// Paste your NEW Web App URL here
+const SCRIPT_URL = "YOUR_NEW_COPIED_WEB_APP_URL_HERE";
 
 let studentMap = {};
-let todaySubmittedMap = {};
 
 document.addEventListener("DOMContentLoaded", function() {
   startLiveClock();
   fetchAnalytics();
 
-  // Attach Input Listener dynamically to update greeting/badge instantly on typing
+  // Dynamic greeting update on typing Roll Number
   const rollInput = document.getElementById('rollNoInput');
   if (rollInput) {
     rollInput.addEventListener('input', handleRollInput);
@@ -40,7 +40,7 @@ function fetchAnalytics() {
   fetch(SCRIPT_URL)
     .then(res => res.json())
     .then(data => {
-      if (data) {
+      if (data && !data.error) {
         const submitted = data.submittedCount || 0;
         const total = data.totalStudents || 63;
 
@@ -56,18 +56,11 @@ function fetchAnalytics() {
         if (percElem) percElem.innerText = percent + "%";
         if (barElem) barElem.style.width = percent + "%";
 
-        // Convert all Keys to clean String to avoid Number/String key mismatches
+        // Store Student Roll No -> Name Mapping
         studentMap = {};
         if (data.studentMap) {
           Object.keys(data.studentMap).forEach(key => {
             studentMap[String(key).trim()] = data.studentMap[key];
-          });
-        }
-
-        todaySubmittedMap = {};
-        if (data.todaySubmittedMap) {
-          Object.keys(data.todaySubmittedMap).forEach(key => {
-            todaySubmittedMap[String(key).trim()] = data.todaySubmittedMap[key];
           });
         }
 
@@ -77,12 +70,10 @@ function fetchAnalytics() {
     .catch(err => console.error("Error loading stats:", err));
 }
 
-// 3. Dynamic Greeting & Smart Duplicate Warning Check
+// 3. Dynamic Student Name Greeting
 function handleRollInput() {
   const rollInput = document.getElementById('rollNoInput');
   const greetingBox = document.getElementById('studentGreetingBadge');
-  const warningBox = document.getElementById('duplicateWarningBadge');
-  const historyBtn = document.getElementById('historyModalBtn');
 
   if (!rollInput || !greetingBox) return;
 
@@ -92,107 +83,12 @@ function handleRollInput() {
     const name = studentMap[rollVal];
     greetingBox.innerText = `Hello ${name}, please update your Daily Progress!`;
     greetingBox.style.display = "block";
-    if (historyBtn) historyBtn.style.display = "block";
-
-    // Strict Boolean check against String Key
-    if (todaySubmittedMap && todaySubmittedMap[rollVal]) {
-      warningBox.className = "submission-status-badge status-submitted";
-      warningBox.innerText = `⚠️ You already submitted today! Submitting again will update your topics.`;
-      warningBox.style.display = "block";
-    } else {
-      warningBox.className = "submission-status-badge status-pending";
-      warningBox.innerText = `✅ You have not submitted today yet.`;
-      warningBox.style.display = "block";
-    }
-
   } else {
     greetingBox.style.display = "none";
-    if (warningBox) warningBox.style.display = "none";
-    if (historyBtn) historyBtn.style.display = "none";
   }
 }
 
-// 4. Open 15-Day History & Streak Modal
-function openHistoryModal() {
-  const rollVal = String(document.getElementById('rollNoInput').value).trim();
-  if (!rollVal || !studentMap[rollVal]) return;
-
-  const modal = document.getElementById('historyModal');
-  const modalContent = document.getElementById('historyModalContent');
-  const studentName = studentMap[rollVal];
-
-  if (!modal || !modalContent) return;
-
-  modalContent.innerHTML = `<div style="text-align:center; padding:20px;">Fetching your 15-day history & streak...</div>`;
-  modal.style.display = "flex";
-
-  fetch(`${SCRIPT_URL}?rollNo=${rollVal}`)
-    .then(res => res.json())
-    .then(data => {
-      if (data && data.studentHistory) {
-        const hist = data.studentHistory.history || [];
-        const streak = data.studentHistory.streakCount || 0;
-
-        let tableRows = "";
-        hist.forEach(item => {
-          const statusTag = item.submitted ? `<span style="color:#16a34a; font-weight:bold;">Submitted</span>` : `<span style="color:#dc2626;">Pending</span>`;
-          tableRows += `
-            <tr>
-              <td><strong>${item.date}</strong></td>
-              <td>${statusTag}</td>
-              <td>${item.dbms}</td>
-              <td>${item.java}</td>
-              <td>${item.dsa}</td>
-              <td>${item.apti}</td>
-            </tr>
-          `;
-        });
-
-        modalContent.innerHTML = `
-          <div class="modal-header">
-            <div>
-              <h3 style="margin:0; font-size:16px; color:#0f172a;">${studentName}</h3>
-              <span style="font-size:12px; color:#64748b;">Roll: ${rollVal}</span>
-            </div>
-            <button class="close-btn" onclick="closeHistoryModal()">✕</button>
-          </div>
-
-          <div class="streak-badge-card">
-            Current Continuous Streak: <strong>${streak} Days</strong>
-          </div>
-
-          <h4 style="margin-bottom:8px; font-size:14px; color:#334155;">Last 15 Days Progress History</h4>
-          <div style="overflow-x:auto;">
-            <table class="history-table">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Status</th>
-                  <th>DBMS</th>
-                  <th>Java</th>
-                  <th>DSA</th>
-                  <th>Apti</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${tableRows || '<tr><td colspan="6" style="text-align:center;">No history records found</td></tr>'}
-              </tbody>
-            </table>
-          </div>
-        `;
-      }
-    })
-    .catch(err => {
-      modalContent.innerHTML = `<div style="color:red; text-align:center; padding:20px;">Failed to load history. Please try again.</div>`;
-    });
-}
-
-function closeHistoryModal() {
-  const modal = document.getElementById('historyModal');
-  if (modal) modal.style.display = "none";
-}
-
-// Helper Function: Validation for Topic Name (Must contain at least 2 alphabetic characters)
+// Helper Function: Topic Name Validation
 function isValidTopicName(topicText) {
   if (!topicText) return false;
   const cleanText = topicText.trim();
@@ -200,26 +96,23 @@ function isValidTopicName(topicText) {
   return alphabetCount >= 2;
 }
 
-// 5. Submit Handler with Register Number & Multi-Course Topic Validation
+// 4. Submit Handler
 function submitProgress() {
   const rollNoInput = document.getElementById("rollNoInput");
   const rollNo = String(rollNoInput.value).trim();
 
-  // 1. Check if Register Number is empty
   if (!rollNo) {
     alert("❌ Please enter your Register / Roll Number!");
     rollNoInput.focus();
     return;
   }
 
-  // 2. Check if Register Number exists in the student database
   if (!studentMap[rollNo]) {
     alert("❌ Invalid Register Number! Please enter a valid registered student Roll Number.");
     rollNoInput.focus();
     return;
   }
 
-  // Fetch Values
   const dbmsStatus = document.getElementById("dbmsStatus").value;
   const dbmsTopic = document.getElementById("dbmsTopic").value.trim();
 
@@ -232,32 +125,26 @@ function submitProgress() {
   const aptiStatus = document.getElementById("aptiStatus").value;
   const aptiTopic = document.getElementById("aptiTopic").value.trim();
 
-  // Check if all statuses are pending
   if (dbmsStatus === "Pending" && javaStatus === "Pending" && dsaStatus === "Pending" && aptiStatus === "Pending") {
     alert("⚠️ Please update progress for at least one course before submitting!");
     return;
   }
 
-  // Collect error messages for all course validation failures
   let errorMessages = [];
 
   if ((dbmsStatus === "Completed" || dbmsStatus === "In Progress") && !isValidTopicName(dbmsTopic)) {
-    errorMessages.push("• DBMS: Please enter a valid topic name. Symbols or numbers alone are not allowed.");
+    errorMessages.push("• DBMS: Please enter a valid topic name.");
   }
-
   if ((javaStatus === "Completed" || javaStatus === "In Progress") && !isValidTopicName(javaTopic)) {
-    errorMessages.push("• Java: Please enter a valid topic name. Symbols or numbers alone are not allowed.");
+    errorMessages.push("• Java: Please enter a valid topic name.");
   }
-
   if ((dsaStatus === "Completed" || dsaStatus === "In Progress") && !isValidTopicName(dsaTopic)) {
-    errorMessages.push("• DSA: Please enter a valid topic name. Symbols or numbers alone are not allowed.");
+    errorMessages.push("• DSA: Please enter a valid topic name.");
   }
-
   if ((aptiStatus === "Completed" || aptiStatus === "In Progress") && !isValidTopicName(aptiTopic)) {
-    errorMessages.push("• Aptitude: Please enter a valid topic name. Symbols or numbers alone are not allowed.");
+    errorMessages.push("• Aptitude: Please enter a valid topic name.");
   }
 
-  // If any course has topic validation errors, display all of them together
   if (errorMessages.length > 0) {
     alert("❌ Validation Errors Found:\n\n" + errorMessages.join("\n"));
     return;
@@ -281,6 +168,11 @@ function submitProgress() {
 
   fetch(SCRIPT_URL, {
     method: "POST",
+    mode: "cors",
+    redirect: "follow",
+    headers: {
+      "Content-Type": "text/plain;charset=utf-8"
+    },
     body: JSON.stringify(payload)
   })
   .then(res => res.json())
@@ -289,16 +181,11 @@ function submitProgress() {
     submitBtn.innerText = "Submit Today Progress";
 
     if (data.result === "success") {
-      // Mark as submitted locally so badge updates immediately
-      todaySubmittedMap[rollNo] = true;
-
       const name = studentMap[rollNo] || "Student";
       alert(`🎉 Progress Updated Successfully!\n\n${name}, you are person #${data.submissionOrder} to submit today!`);
       
       rollNoInput.value = "";
       if (document.getElementById("studentGreetingBadge")) document.getElementById("studentGreetingBadge").style.display = "none";
-      if (document.getElementById("duplicateWarningBadge")) document.getElementById("duplicateWarningBadge").style.display = "none";
-      if (document.getElementById("historyModalBtn")) document.getElementById("historyModalBtn").style.display = "none";
 
       document.getElementById("dbmsStatus").value = "Pending";
       document.getElementById("javaStatus").value = "Pending";
@@ -316,6 +203,7 @@ function submitProgress() {
     }
   })
   .catch(err => {
+    console.error("Submission Error:", err);
     submitBtn.disabled = false;
     submitBtn.innerText = "Submit Today Progress";
     alert("❌ Submission failed. Please check your internet connection.");
