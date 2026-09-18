@@ -31,18 +31,6 @@
     <div class="form-group">
       <label for="rollNoInput">Register Roll Number:</label>
       <input type="text" id="rollNoInput" placeholder="Ex: 922524244xxx" maxlength="12" oninput="handleRollInput()">
-      
-      <!-- Greeting Badge -->
-      <div id="studentGreetingBadge" class="student-greeting-badge"></div>
-      
-      <!-- Smart Duplicate Warning Badge -->
-      <div id="duplicateWarningBadge" class="submission-status-badge"></div>
-
-      <!-- History & Streaks Modal Trigger Button -->
-      <button id="historyModalBtn" class="btn-history" onclick="openHistoryModal()">
-        View My 15-Day History & Streaks
-      </button>
-    </div>
 
     <!-- Course Progress Section -->
     <div class="subject-grid">
@@ -92,13 +80,6 @@
     </div>
 
     <button class="btn-submit" id="submitBtn" onclick="submitProgress()">Submit Today Progress</button>
-  </div>
-
-  <!-- 15-Day History & Streak Modal -->
-  <div id="historyModal" class="modal-overlay">
-    <div class="modal-card">
-      <div id="historyModalContent"></div>
-    </div>
   </div>
 
   <script src="script.js"></script>
