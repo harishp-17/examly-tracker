@@ -31,9 +31,10 @@
     <div class="form-group">
       <label for="rollNoInput">Register Roll Number:</label>
       <input type="text" id="rollNoInput" placeholder="Ex: 922524244xxx" maxlength="12" oninput="handleRollInput()">
-      <!-- Added Name Display Badge for Auto-Suggest -->
-      <div id="studentNameWrapper" style="margin-top: 8px; font-weight: 600; color: #38bdf8; display: none;">
-        Student Name: <span id="studentName"></span>,please update your Daily Progress!
+      
+      <!-- Styled Greeting Badge matching CSS & JS -->
+      <div id="studentNameWrapper" class="student-greeting-badge">
+        Hello <span id="studentName"></span>, please update your Daily Progress!
       </div>
     </div>
 
@@ -89,5 +90,4 @@
 
   <script src="script.js"></script>
 </body>
-</html>
 </html>
