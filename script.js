@@ -6,6 +6,13 @@ let todaySubmittedMap = {};
 document.addEventListener("DOMContentLoaded", function() {
   startLiveClock();
   fetchAnalytics();
+
+  // Attach Input Listener dynamically to update greeting/badge instantly on typing
+  const rollInput = document.getElementById('rollNoInput');
+  if (rollInput) {
+    rollInput.addEventListener('input', handleRollInput);
+    rollInput.addEventListener('keyup', handleRollInput);
+  }
 });
 
 // 1. Live Clock
@@ -37,24 +44,28 @@ function fetchAnalytics() {
         const submitted = data.submittedCount || 0;
         const total = data.totalStudents || 63;
 
-        document.getElementById('submittedCount').innerText = submitted;
-        document.getElementById('totalCount').innerText = total;
+        const subElem = document.getElementById('submittedCount');
+        const totElem = document.getElementById('totalCount');
+        if (subElem) subElem.innerText = submitted;
+        if (totElem) totElem.innerText = total;
         
         const percent = Math.round((submitted / total) * 100) || 0;
         
-        document.getElementById('progressPercent').innerText = percent + "%";
-        document.getElementById('progressBar').style.width = percent + "%";
+        const percElem = document.getElementById('progressPercent');
+        const barElem = document.getElementById('progressBar');
+        if (percElem) percElem.innerText = percent + "%";
+        if (barElem) barElem.style.width = percent + "%";
 
-        // Convert all Keys to String to avoid String vs Number mismatches
+        // Convert all Keys to clean String to avoid Number/String key mismatches
+        studentMap = {};
         if (data.studentMap) {
-          studentMap = {};
           Object.keys(data.studentMap).forEach(key => {
             studentMap[String(key).trim()] = data.studentMap[key];
           });
         }
 
+        todaySubmittedMap = {};
         if (data.todaySubmittedMap) {
-          todaySubmittedMap = {};
           Object.keys(data.todaySubmittedMap).forEach(key => {
             todaySubmittedMap[String(key).trim()] = data.todaySubmittedMap[key];
           });
@@ -77,26 +88,26 @@ function handleRollInput() {
 
   const rollVal = String(rollInput.value).trim();
 
-  if (studentMap[rollVal]) {
+  if (rollVal !== "" && studentMap[rollVal]) {
     const name = studentMap[rollVal];
     greetingBox.innerText = `Hello ${name}, please update your Daily Progress!`;
     greetingBox.style.display = "block";
-    if (historyBtn) historyBtn.style.display = "block"; // Show 15-Day History Button
+    if (historyBtn) historyBtn.style.display = "block";
 
-    // Duplicate Check (Checked against String key)
-    if (todaySubmittedMap[rollVal]) {
+    // Strict Boolean check against String Key
+    if (todaySubmittedMap && todaySubmittedMap[rollVal]) {
       warningBox.className = "submission-status-badge status-submitted";
-      warningBox.innerText = `You already submitted today! Submitting again will update your topics.`;
+      warningBox.innerText = `⚠️ You already submitted today! Submitting again will update your topics.`;
       warningBox.style.display = "block";
     } else {
       warningBox.className = "submission-status-badge status-pending";
-      warningBox.innerText = `You have not submitted today yet.`;
+      warningBox.innerText = `✅ You have not submitted today yet.`;
       warningBox.style.display = "block";
     }
 
   } else {
     greetingBox.style.display = "none";
-    warningBox.style.display = "none";
+    if (warningBox) warningBox.style.display = "none";
     if (historyBtn) historyBtn.style.display = "none";
   }
 }
@@ -109,6 +120,8 @@ function openHistoryModal() {
   const modal = document.getElementById('historyModal');
   const modalContent = document.getElementById('historyModalContent');
   const studentName = studentMap[rollVal];
+
+  if (!modal || !modalContent) return;
 
   modalContent.innerHTML = `<div style="text-align:center; padding:20px;">Fetching your 15-day history & streak...</div>`;
   modal.style.display = "flex";
@@ -175,7 +188,8 @@ function openHistoryModal() {
 }
 
 function closeHistoryModal() {
-  document.getElementById('historyModal').style.display = "none";
+  const modal = document.getElementById('historyModal');
+  if (modal) modal.style.display = "none";
 }
 
 // Helper Function: Validation for Topic Name (Must contain at least 2 alphabetic characters)
@@ -188,19 +202,20 @@ function isValidTopicName(topicText) {
 
 // 5. Submit Handler with Register Number & Multi-Course Topic Validation
 function submitProgress() {
-  const rollNo = String(document.getElementById("rollNoInput").value).trim();
+  const rollNoInput = document.getElementById("rollNoInput");
+  const rollNo = String(rollNoInput.value).trim();
 
   // 1. Check if Register Number is empty
   if (!rollNo) {
     alert("❌ Please enter your Register / Roll Number!");
-    document.getElementById("rollNoInput").focus();
+    rollNoInput.focus();
     return;
   }
 
   // 2. Check if Register Number exists in the student database
   if (!studentMap[rollNo]) {
     alert("❌ Invalid Register Number! Please enter a valid registered student Roll Number.");
-    document.getElementById("rollNoInput").focus();
+    rollNoInput.focus();
     return;
   }
 
@@ -280,7 +295,7 @@ function submitProgress() {
       const name = studentMap[rollNo] || "Student";
       alert(`🎉 Progress Updated Successfully!\n\n${name}, you are person #${data.submissionOrder} to submit today!`);
       
-      document.getElementById("rollNoInput").value = "";
+      rollNoInput.value = "";
       if (document.getElementById("studentGreetingBadge")) document.getElementById("studentGreetingBadge").style.display = "none";
       if (document.getElementById("duplicateWarningBadge")) document.getElementById("duplicateWarningBadge").style.display = "none";
       if (document.getElementById("historyModalBtn")) document.getElementById("historyModalBtn").style.display = "none";
