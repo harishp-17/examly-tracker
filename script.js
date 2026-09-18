@@ -1,4 +1,4 @@
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwkYT_qKjnWBTG7wT-xLkocvnBFDZh7DB7_pVhRTWY/dev";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzqgrEdnWDCRLKyOW40152SMcXObcaF3lBb7Wlyc-zBkBIag4pyVwnHE4otSOYK4XY/exec";
 
 let studentMap = {};
 let todaySubmittedMap = {};
