@@ -104,6 +104,7 @@ input[type="text"]:focus, select:focus {
   box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
 }
 
+/* Updated Greeting Badge Class to match JS & HTML */
 .student-greeting-badge {
   font-weight: 600;
   color: #2563eb;
@@ -115,6 +116,7 @@ input[type="text"]:focus, select:focus {
   border-left: 4px solid #2563eb;
   display: none;
 }
+
 /* Subject Grid */
 .subject-grid {
   display: grid;
@@ -147,10 +149,16 @@ input[type="text"]:focus, select:focus {
   font-weight: bold;
   font-size: 16px;
   cursor: pointer;
+  transition: background 0.2s;
 }
 
 .btn-submit:hover {
   background: #1d4ed8;
+}
+
+.btn-submit:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
 }
 
 /* History Modal Pop-up */
