@@ -1,5 +1,5 @@
 // Paste your NEW Web App URL here
-const SCRIPT_URL = "YOUR_NEW_COPIED_WEB_APP_URL_HERE";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzM0PE30F3x7kQaXm2MApfPST92cAo_1RVr6UpzHC5i9kUKLcfE9u6jRMj6wq9IL0CN/exec";
 
 let studentMap = {};
 
