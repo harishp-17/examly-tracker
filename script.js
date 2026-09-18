@@ -66,7 +66,7 @@ function handleRollInput() {
   }
 }
 
-// 4. Form Submit Handler with Person Submission Order Number
+// 4. Form Submit Handler with Reset Fix
 function submitProgress() {
   const rollNo = document.getElementById("rollNoInput").value.trim();
 
@@ -103,7 +103,28 @@ function submitProgress() {
     if (data.result === "success") {
       const name = studentMap[rollNo] || "Student";
       alert(`🎉 Progress Updated Successfully!\n\n${name}, you are person #${data.submissionOrder} to submit today!`);
+      
+      // ==========================================
+      // 🚀 FORM RESET LOGIC (CLEARING INPUTS)
+      // ==========================================
+      document.getElementById("rollNoInput").value = "";
+      document.getElementById("studentGreetingBadge").style.display = "none";
+      
+      // Reset Statuses back to "Pending"
+      document.getElementById("dbmsStatus").value = "Pending";
+      document.getElementById("javaStatus").value = "Pending";
+      document.getElementById("dsaStatus").value = "Pending";
+      document.getElementById("aptiStatus").value = "Pending";
+      
+      // Clear Topic Input Fields
+      document.getElementById("dbmsTopic").value = "";
+      document.getElementById("javaTopic").value = "";
+      document.getElementById("dsaTopic").value = "";
+      document.getElementById("aptiTopic").value = "";
+
+      // Refresh Live Dashboard Analytics Count
       fetchAnalytics();
+
     } else {
       alert("Invalid Roll Number! Please check your details.");
     }
@@ -111,6 +132,9 @@ function submitProgress() {
   .catch(err => {
     submitBtn.disabled = false;
     submitBtn.innerText = "Submit Today Progress";
+    alert("Submission failed. Please check internet connection.");
+  });
+}
     alert("Submission failed. Please check internet connection.");
   });
 }
