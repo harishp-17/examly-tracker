@@ -1,17 +1,19 @@
+// Google Apps Script Web App Deployment URL
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxwW3coAMZZLNWnkZ9-jwSCCNej2NgK0lT7ZrKRIZNj0CW1-ho8E7KCDWbk9jn6COUj/exec";
 let studentMap = {};
 
-window.onload = function() {
-  // Start Live Clock
+// DOM Loaded உடனே Clock & Analytics Run ஆகும்
+document.addEventListener("DOMContentLoaded", function() {
   startLiveClock();
-  
-  // Fetch Analytics
   fetchAnalytics();
-};
+});
 
 // 1. Live Clock Function (Top Right Corner with Day, Date & Seconds)
 function startLiveClock() {
   function updateClock() {
+    const clockElement = document.getElementById('liveClock');
+    if (!clockElement) return;
+
     const now = new Date();
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const dayName = days[now.getDay()];
@@ -19,7 +21,7 @@ function startLiveClock() {
     const dateStr = now.toLocaleDateString('en-GB'); // DD/MM/YYYY
     const timeStr = now.toLocaleTimeString('en-US', { hour12: true }); // HH:MM:SS AM/PM
 
-    document.getElementById('liveClock').innerText = `${dayName}, ${dateStr} | ${timeStr}`;
+    clockElement.innerText = `${dayName}, ${dateStr} | ${timeStr}`;
   }
   
   updateClock();
@@ -32,12 +34,13 @@ function fetchAnalytics() {
     .then(res => res.json())
     .then(data => {
       if (data) {
-        document.getElementById('submittedCount').innerText = data.submittedCount || 0;
-        document.getElementById('totalCount').innerText = data.totalStudents || 63;
-        
-        const total = data.totalStudents || 63;
         const submitted = data.submittedCount || 0;
-        const percent = Math.round((submitted / total) * 100);
+        const total = data.totalStudents || 63;
+
+        document.getElementById('submittedCount').innerText = submitted;
+        document.getElementById('totalCount').innerText = total;
+        
+        const percent = Math.round((submitted / total) * 100) || 0;
         
         document.getElementById('progressPercent').innerText = percent + "%";
         document.getElementById('progressBar').style.width = percent + "%";
@@ -53,8 +56,12 @@ function fetchAnalytics() {
 
 // 3. Dynamic Greeting Message on Typing Roll No
 function handleRollInput() {
-  const rollVal = document.getElementById('rollNoInput').value.trim();
+  const rollInput = document.getElementById('rollNoInput');
   const greetingBox = document.getElementById('studentGreetingBadge');
+
+  if (!rollInput || !greetingBox) return;
+
+  const rollVal = rollInput.value.trim();
 
   if (studentMap[rollVal]) {
     const name = studentMap[rollVal];
@@ -66,7 +73,7 @@ function handleRollInput() {
   }
 }
 
-// 4. Form Submit Handler with Reset Fix
+// 4. Form Submit Handler with Form Reset
 function submitProgress() {
   const rollNo = document.getElementById("rollNoInput").value.trim();
 
@@ -104,25 +111,22 @@ function submitProgress() {
       const name = studentMap[rollNo] || "Student";
       alert(`🎉 Progress Updated Successfully!\n\n${name}, you are person #${data.submissionOrder} to submit today!`);
       
-      // ==========================================
-      // 🚀 FORM RESET LOGIC (CLEARING INPUTS)
-      // ==========================================
+      // Form Inputs Clear Logic
       document.getElementById("rollNoInput").value = "";
-      document.getElementById("studentGreetingBadge").style.display = "none";
+      const greetingBox = document.getElementById("studentGreetingBadge");
+      if (greetingBox) greetingBox.style.display = "none";
       
-      // Reset Statuses back to "Pending"
       document.getElementById("dbmsStatus").value = "Pending";
       document.getElementById("javaStatus").value = "Pending";
       document.getElementById("dsaStatus").value = "Pending";
       document.getElementById("aptiStatus").value = "Pending";
       
-      // Clear Topic Input Fields
       document.getElementById("dbmsTopic").value = "";
       document.getElementById("javaTopic").value = "";
       document.getElementById("dsaTopic").value = "";
       document.getElementById("aptiTopic").value = "";
 
-      // Refresh Live Dashboard Analytics Count
+      // Refresh Live Dashboard Counts
       fetchAnalytics();
 
     } else {
@@ -132,9 +136,6 @@ function submitProgress() {
   .catch(err => {
     submitBtn.disabled = false;
     submitBtn.innerText = "Submit Today Progress";
-    alert("Submission failed. Please check internet connection.");
-  });
-}
     alert("Submission failed. Please check internet connection.");
   });
 }
