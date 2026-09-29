@@ -207,6 +207,6 @@ function submitProgress() {
     console.error("Submission Error:", err);
     submitBtn.disabled = false;
     submitBtn.innerText = "Submit Today Progress";
-    alert("❌ Submission failed. Please check your internet connection.");
+    alert("❌ Submission failed. Please check your internet connection,Otherwise Contact the Admin");
   });
 }
