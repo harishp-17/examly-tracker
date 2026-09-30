@@ -46,56 +46,86 @@
 
           <div class="course-group">
             <div class="course-group-header">
-              <h3>Today's Course Status</h3>
+              <h3>Today's Course Status & Topics</h3>
               <span class="batch-badge">Daily Log</span>
             </div>
             
-            <div class="field">
-              <div class="field-label-row">
-                <label for="dbms">2028_DBMS Preparatory Course_Level 1</label>
-                <span class="subject-tag dbms-tag">DBMS</span>
+            <div class="subject-grid">
+              <!-- DBMS Subject Box -->
+              <div class="subject-box" id="dbmsBox">
+                <div class="field-label-row">
+                  <label for="dbms">2028_DBMS Preparatory Course_Level 1</label>
+                  <span class="subject-tag dbms-tag">DBMS</span>
+                </div>
+                <div class="select-wrapper">
+                  <select id="dbms" class="status-select">
+                    <option value="Pending" selected>Pending</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                  </select>
+                </div>
+                <div class="topic-input-wrapper" id="dbmsTopicWrapper">
+                  <label for="dbmsTopic" class="topic-label">Topic / Unit Completed</label>
+                  <input type="text" id="dbmsTopic" class="topic-input" placeholder="Enter Topic Name" autocomplete="off">
+                </div>
               </div>
-              <select id="dbms">
-                <option value="Completed">Completed</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Pending" selected>Pending</option>
-              </select>
-            </div>
 
-            <div class="field">
-              <div class="field-label-row">
-                <label for="java">NeoPAT_Prepcourse_Java_Level 1</label>
-                <span class="subject-tag java-tag">JAVA</span>
+              <!-- JAVA Subject Box -->
+              <div class="subject-box" id="javaBox">
+                <div class="field-label-row">
+                  <label for="java">NeoPAT_Prepcourse_Java_Level 1</label>
+                  <span class="subject-tag java-tag">JAVA</span>
+                </div>
+                <div class="select-wrapper">
+                  <select id="java" class="status-select">
+                    <option value="Pending" selected>Pending</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                  </select>
+                </div>
+                <div class="topic-input-wrapper" id="javaTopicWrapper">
+                  <label for="javaTopic" class="topic-label">Topic / Unit Completed</label>
+                  <input type="text" id="javaTopic" class="topic-input" placeholder="Enter Topic Name" autocomplete="off">
+                </div>
               </div>
-              <select id="java">
-                <option value="Completed">Completed</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Pending" selected>Pending</option>
-              </select>
-            </div>
 
-            <div class="field">
-              <div class="field-label-row">
-                <label for="dsa">NeoPAT_Prepcourse_DSA_Level 1</label>
-                <span class="subject-tag dsa-tag">DSA</span>
+              <!-- DSA Subject Box -->
+              <div class="subject-box" id="dsaBox">
+                <div class="field-label-row">
+                  <label for="dsa">NeoPAT_Prepcourse_DSA_Level 1</label>
+                  <span class="subject-tag dsa-tag">DSA</span>
+                </div>
+                <div class="select-wrapper">
+                  <select id="dsa" class="status-select">
+                    <option value="Pending" selected>Pending</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                  </select>
+                </div>
+                <div class="topic-input-wrapper" id="dsaTopicWrapper">
+                  <label for="dsaTopic" class="topic-label">Topic / Unit Completed</label>
+                  <input type="text" id="dsaTopic" class="topic-input" placeholder="Enter Topic Name" autocomplete="off">
+                </div>
               </div>
-              <select id="dsa">
-                <option value="Completed">Completed</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Pending" selected>Pending</option>
-              </select>
-            </div>
 
-            <div class="field">
-              <div class="field-label-row">
-                <label for="aptitude">NeoPAT_Aptitude Preparatory Course</label>
-                <span class="subject-tag apti-tag">APTITUDE</span>
+              <!-- Aptitude Subject Box -->
+              <div class="subject-box" id="aptiBox">
+                <div class="field-label-row">
+                  <label for="aptitude">NeoPAT_Aptitude Preparatory Course</label>
+                  <span class="subject-tag apti-tag">APTITUDE</span>
+                </div>
+                <div class="select-wrapper">
+                  <select id="aptitude" class="status-select">
+                    <option value="Pending" selected>Pending</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                  </select>
+                </div>
+                <div class="topic-input-wrapper" id="aptiTopicWrapper">
+                  <label for="aptiTopic" class="topic-label">Topic / Unit Completed</label>
+                  <input type="text" id="aptiTopic" class="topic-input" placeholder="Enter Topic Name" autocomplete="off">
+                </div>
               </div>
-              <select id="aptitude">
-                <option value="Completed">Completed</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Pending" selected>Pending</option>
-              </select>
             </div>
           </div>
 
