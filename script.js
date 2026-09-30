@@ -98,6 +98,8 @@ function isValidTopicName(topic) {
  * Helper to find element by multiple possible IDs
  */
 function getElementByPossibleIds(idList) {
+  if (!idList) return null;
+  if (!Array.isArray(idList)) idList = [idList];
   for (const id of idList) {
     const el = document.getElementById(id);
     if (el) return el;
@@ -173,23 +175,25 @@ function initSubjectStatusListeners() {
 /**
  * Updates a specific progress bar and text with animated width
  */
-function updateProgressBar(barId, textId, count, total, labelPrefix = "") {
+function updateProgressBar(barId, textIdList, count, total, labelPrefix = "") {
   const barEl = document.getElementById(barId);
-  const textEl = document.getElementById(textId);
-  
-  if (!barEl || !textEl) return;
+  const textEl = getElementByPossibleIds(textIdList);
   
   const safeTotal = total > 0 ? total : 63;
-  const safeCount = Math.min(Math.max(count || 0, 0), safeTotal);
+  const safeCount = Math.min(Math.max(Number(count) || 0, 0), safeTotal);
   const percentage = Math.round((safeCount / safeTotal) * 100);
   
   // Set width for smooth CSS transition
-  barEl.style.width = `${percentage}%`;
+  if (barEl) {
+    barEl.style.width = `${percentage}%`;
+  }
   
-  if (labelPrefix) {
-    textEl.textContent = `${labelPrefix}: ${safeCount}/${safeTotal} (${percentage}%)`;
-  } else {
-    textEl.textContent = `${safeCount}/${safeTotal} (${percentage}%)`;
+  if (textEl) {
+    if (labelPrefix) {
+      textEl.textContent = `${labelPrefix}: ${safeCount}/${safeTotal} (${percentage}%)`;
+    } else {
+      textEl.textContent = `${safeCount}/${safeTotal} (${percentage}%)`;
+    }
   }
 }
 
@@ -219,23 +223,28 @@ async function fetchAnalytics() {
     }
     
     const totalStudents = Number(data.totalStudents) || 63;
-    let submittedCount = 0;
+    let submittedCount = Number(data.submittedCount) || 0;
     
-    // Calculate subject-wise completion counts from API data
+    // Independent subject counts
     let dbmsCount = 0;
     let javaCount = 0;
     let dsaCount = 0;
     let aptiCount = 0;
     
-    const records = data.records || data.submissions || data.rows || data.data;
-
-    if (Array.isArray(records)) {
-      // 1. Calculate unique students who submitted/updated at least 1 course today
+    if (data.subjectCounts && typeof data.subjectCounts === "object") {
+      // 1. Direct structured subjectCounts from Code.gs
+      dbmsCount = Number(data.subjectCounts.dbms ?? data.subjectCounts.DBMS ?? 0);
+      javaCount = Number(data.subjectCounts.java ?? data.subjectCounts.JAVA ?? data.subjectCounts.Java ?? 0);
+      dsaCount  = Number(data.subjectCounts.dsa  ?? data.subjectCounts.DSA  ?? 0);
+      aptiCount = Number(data.subjectCounts.aptitude ?? data.subjectCounts.apti ?? data.subjectCounts.Aptitude ?? 0);
+    } else if (Array.isArray(data.records) || Array.isArray(data.submissions)) {
+      // 2. Compute from records array if present
+      const records = data.records || data.submissions;
       const uniqueStudents = new Set();
-      const dbmsStudents = new Set();
-      const javaStudents = new Set();
-      const dsaStudents = new Set();
-      const aptiStudents = new Set();
+      const dbmsSet = new Set();
+      const javaSet = new Set();
+      const dsaSet = new Set();
+      const aptiSet = new Set();
 
       records.forEach(rec => {
         const roll = String(rec.rollNo || rec.roll || "").trim();
@@ -246,58 +255,49 @@ async function fetchAnalytics() {
 
         const hasDbms = dbmsSt === "Completed" || dbmsSt === "In Progress";
         const hasJava = javaSt === "Completed" || javaSt === "In Progress";
-        const hasDsa = dsaSt === "Completed" || dsaSt === "In Progress";
+        const hasDsa  = dsaSt === "Completed" || dsaSt === "In Progress";
         const hasApti = aptiSt === "Completed" || aptiSt === "In Progress";
 
-        // If student updated any course status, count in overall submissions
-        if (hasDbms || hasJava || hasDsa || hasApti || rec.timestamp) {
+        if (hasDbms || hasJava || hasDsa || hasApti) {
           if (roll) uniqueStudents.add(roll);
         }
 
-        // Count individual subject completions/updates
-        if (hasDbms && roll) dbmsStudents.add(roll);
-        if (hasJava && roll) javaStudents.add(roll);
-        if (hasDsa && roll) dsaStudents.add(roll);
-        if (hasApti && roll) aptiStudents.add(roll);
+        if (hasDbms && roll) dbmsSet.add(roll);
+        if (hasJava && roll) javaSet.add(roll);
+        if (hasDsa  && roll) dsaSet.add(roll);
+        if (hasApti && roll) aptiSet.add(roll);
       });
 
-      submittedCount = uniqueStudents.size || Number(data.submittedCount) || 0;
-      dbmsCount = dbmsStudents.size;
-      javaCount = javaStudents.size;
-      dsaCount = dsaStudents.size;
-      aptiCount = aptiStudents.size;
-
-    } else if (data.subjectCounts && typeof data.subjectCounts === "object") {
-      // 2. Pre-calculated subjectCounts object from Google Apps Script
-      submittedCount = Number(data.submittedCount ?? data.uniqueStudentsCount ?? data.totalSubmitted) || 0;
-      dbmsCount = Number(data.subjectCounts.dbms ?? data.subjectCounts.DBMS ?? 0);
-      javaCount = Number(data.subjectCounts.java ?? data.subjectCounts.JAVA ?? data.subjectCounts.Java ?? 0);
-      dsaCount = Number(data.subjectCounts.dsa ?? data.subjectCounts.DSA ?? 0);
-      aptiCount = Number(data.subjectCounts.aptitude ?? data.subjectCounts.apti ?? data.subjectCounts.Aptitude ?? 0);
-
+      submittedCount = uniqueStudents.size || submittedCount;
+      dbmsCount = dbmsSet.size;
+      javaCount = javaSet.size;
+      dsaCount = dsaSet.size;
+      aptiCount = aptiSet.size;
     } else {
-      // 3. Direct subject completion keys from API endpoint
-      submittedCount = Number(data.submittedCount ?? data.uniqueStudentsCount ?? 0);
-      dbmsCount = Number(data.dbmsCount ?? data.dbmsCompleted ?? data.dbms ?? 0);
-      javaCount = Number(data.javaCount ?? data.javaCompleted ?? data.java ?? 0);
-      dsaCount = Number(data.dsaCount ?? data.dsaCompleted ?? data.dsa ?? 0);
-      aptiCount = Number(data.aptiCount ?? data.aptitudeCount ?? data.aptitudeCompleted ?? data.aptitude ?? 0);
+      // 3. Fallback direct properties
+      dbmsCount = Number(data.dbmsCount ?? data.dbmsCompleted ?? 0);
+      javaCount = Number(data.javaCount ?? data.javaCompleted ?? 0);
+      dsaCount  = Number(data.dsaCount  ?? data.dsaCompleted  ?? 0);
+      aptiCount = Number(data.aptiCount ?? data.aptitudeCount ?? data.aptitudeCompleted ?? 0);
     }
 
     // Update Overall Progress
     const overallPercentage = Math.round((submittedCount / totalStudents) * 100);
     const overallProgressBar = document.getElementById("overallProgressBar");
-    const overallProgressText = document.getElementById("overallProgressText");
-    if (overallProgressBar && overallProgressText) {
+    const overallProgressText = getElementByPossibleIds(["overallProgressText", "overallCount", "overallCountText"]);
+    
+    if (overallProgressBar) {
       overallProgressBar.style.width = `${overallPercentage}%`;
+    }
+    if (overallProgressText) {
       overallProgressText.textContent = `${submittedCount} / ${totalStudents} Submitted (${overallPercentage}%)`;
     }
 
     // Update Subject-Wise Progress Bars independently
-    updateProgressBar("dbmsProgressBar", "dbmsCountText", dbmsCount, totalStudents);
-    updateProgressBar("javaProgressBar", "javaCountText", javaCount, totalStudents);
-    updateProgressBar("dsaProgressBar", "dsaCountText", dsaCount, totalStudents);
-    updateProgressBar("aptiProgressBar", "aptiCountText", aptiCount, totalStudents);
+    updateProgressBar("dbmsProgressBar", ["dbmsCountText", "dbmsCount"], dbmsCount, totalStudents);
+    updateProgressBar("javaProgressBar", ["javaCountText", "javaCount"], javaCount, totalStudents);
+    updateProgressBar("dsaProgressBar", ["dsaCountText", "dsaCount"], dsaCount, totalStudents);
+    updateProgressBar("aptiProgressBar", ["aptiCountText", "aptiCount"], aptiCount, totalStudents);
     
     // Update timestamp
     const now = new Date();
@@ -344,7 +344,7 @@ document.addEventListener("DOMContentLoaded", () => {
       e.preventDefault();
       
       const msg = document.getElementById("msg");
-      msg.textContent = "";
+      if (msg) msg.textContent = "";
 
       // Validate topic inputs ONLY for subjects where status is "In Progress" or "Completed"
       for (const sub of SUBJECT_CONFIG) {
@@ -359,20 +359,22 @@ document.addEventListener("DOMContentLoaded", () => {
               inputEl.classList.add("input-error");
               inputEl.focus();
             }
-            msg.style.color = "#ef4444";
-            msg.textContent = `Please enter a valid topic name (at least 2 letters) for ${sub.name}.`;
+            if (msg) {
+              msg.style.color = "#ef4444";
+              msg.textContent = `Please enter a valid topic name (at least 2 letters) for ${sub.name}.`;
+            }
             return;
           }
         }
       }
 
       const submitBtn = document.getElementById("submitBtn");
-      const btnText = submitBtn.querySelector(".btn-text");
-      const btnSpinner = submitBtn.querySelector(".btn-spinner");
+      const btnText = submitBtn ? submitBtn.querySelector(".btn-text") : null;
+      const btnSpinner = submitBtn ? submitBtn.querySelector(".btn-spinner") : null;
       
       if (btnText) btnText.textContent = "Submitting...";
       if (btnSpinner) btnSpinner.classList.remove("hidden");
-      submitBtn.disabled = true;
+      if (submitBtn) submitBtn.disabled = true;
       
       const dbmsSelect = getElementByPossibleIds(["dbms", "dbmsStatus"]);
       const javaSelect = getElementByPossibleIds(["java", "javaStatus"]);
@@ -408,8 +410,10 @@ document.addEventListener("DOMContentLoaded", () => {
         body: JSON.stringify(payload)
       })
       .then(() => {
-        msg.style.color = "#34d399";
-        msg.textContent = "Progress Updated Successfully in Google Sheet!";
+        if (msg) {
+          msg.style.color = "#34d399";
+          msg.textContent = "Progress Updated Successfully in Google Sheet!";
+        }
         
         // Reset form, topic visibility, and greeting back to default
         form.reset();
@@ -420,14 +424,16 @@ document.addEventListener("DOMContentLoaded", () => {
         setTimeout(fetchAnalytics, 1200);
       })
       .catch(error => {
-        msg.style.color = "#f87171";
-        msg.textContent = "Error updating status. Please try again.";
+        if (msg) {
+          msg.style.color = "#f87171";
+          msg.textContent = "Error updating status. Please try again.";
+        }
         console.error("Error submitting progress:", error);
       })
       .finally(() => {
         if (btnText) btnText.textContent = "Submit Progress";
         if (btnSpinner) btnSpinner.classList.add("hidden");
-        submitBtn.disabled = false;
+        if (submitBtn) submitBtn.disabled = false;
       });
     });
   }
