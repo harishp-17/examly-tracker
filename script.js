@@ -78,6 +78,72 @@ function handleRollNumberInput() {
 }
 
 /**
+ * Validates that a topic name contains at least 2 alphabet characters
+ */
+function isValidTopicName(topic) {
+  if (!topic || typeof topic !== "string") return false;
+  const alphaChars = topic.match(/[a-zA-Z]/g);
+  return alphaChars !== null && alphaChars.length >= 2;
+}
+
+/**
+ * Updates visibility and highlighting for a subject's topic input based on status
+ */
+function syncSubjectTopicVisibility(selectId, boxId, wrapperId, inputId) {
+  const selectEl = document.getElementById(selectId);
+  const boxEl = document.getElementById(boxId);
+  const wrapperEl = document.getElementById(wrapperId);
+  const inputEl = document.getElementById(inputId);
+  
+  if (!selectEl || !boxEl || !wrapperEl || !inputEl) return;
+  
+  const status = selectEl.value;
+  if (status === "In Progress" || status === "Completed") {
+    boxEl.classList.add("active-subject");
+    wrapperEl.classList.add("highlighted");
+    inputEl.setAttribute("required", "true");
+  } else {
+    boxEl.classList.remove("active-subject");
+    wrapperEl.classList.remove("highlighted");
+    inputEl.removeAttribute("required");
+    inputEl.classList.remove("input-error");
+  }
+}
+
+/**
+ * Initializes subject status change listeners
+ */
+function initSubjectStatusListeners() {
+  const subjects = [
+    { select: "dbms", box: "dbmsBox", wrapper: "dbmsTopicWrapper", input: "dbmsTopic" },
+    { select: "java", box: "javaBox", wrapper: "javaTopicWrapper", input: "javaTopic" },
+    { select: "dsa", box: "dsaBox", wrapper: "dsaTopicWrapper", input: "dsaTopic" },
+    { select: "aptitude", box: "aptiBox", wrapper: "aptiTopicWrapper", input: "aptiTopic" }
+  ];
+
+  subjects.forEach(sub => {
+    const selectEl = document.getElementById(sub.select);
+    const inputEl = document.getElementById(sub.input);
+    
+    if (selectEl) {
+      selectEl.addEventListener("change", () => {
+        syncSubjectTopicVisibility(sub.select, sub.box, sub.wrapper, sub.input);
+      });
+      // Initial sync
+      syncSubjectTopicVisibility(sub.select, sub.box, sub.wrapper, sub.input);
+    }
+    
+    if (inputEl) {
+      inputEl.addEventListener("input", () => {
+        if (isValidTopicName(inputEl.value.trim())) {
+          inputEl.classList.remove("input-error");
+        }
+      });
+    }
+  });
+}
+
+/**
  * Updates a specific progress bar and text with animated width
  */
 function updateProgressBar(barId, textId, count, total, labelPrefix = "") {
@@ -199,34 +265,69 @@ document.addEventListener("DOMContentLoaded", () => {
     rollInput.addEventListener("input", handleRollNumberInput);
   }
 
-  // 4. Manual Refresh Button
+  // 4. Initialize subject status and topic field visibility listeners
+  initSubjectStatusListeners();
+
+  // 5. Manual Refresh Button
   const refreshBtn = document.getElementById("refreshAnalyticsBtn");
   if (refreshBtn) {
     refreshBtn.addEventListener("click", fetchAnalytics);
   }
 
-  // 5. Tracker Form Submission
+  // 6. Tracker Form Submission with Validation
   const form = document.getElementById("trackerForm");
   if (form) {
     form.addEventListener("submit", function(e) {
       e.preventDefault();
       
+      const msg = document.getElementById("msg");
+      msg.textContent = "";
+
+      // Validate Subject Topics when status is "In Progress" or "Completed"
+      const subjectChecks = [
+        { name: "DBMS", select: "dbms", input: "dbmsTopic" },
+        { name: "Java", select: "java", input: "javaTopic" },
+        { name: "DSA", select: "dsa", input: "dsaTopic" },
+        { name: "Aptitude", select: "aptitude", input: "aptiTopic" }
+      ];
+
+      for (const sub of subjectChecks) {
+        const selectEl = document.getElementById(sub.select);
+        const inputEl = document.getElementById(sub.input);
+        const status = selectEl ? selectEl.value : "Pending";
+        const topicVal = inputEl ? inputEl.value.trim() : "";
+
+        if (status === "In Progress" || status === "Completed") {
+          if (!isValidTopicName(topicVal)) {
+            if (inputEl) {
+              inputEl.classList.add("input-error");
+              inputEl.focus();
+            }
+            msg.style.color = "#ef4444";
+            msg.textContent = `Please enter a valid topic name (at least 2 letters) for ${sub.name}.`;
+            return;
+          }
+        }
+      }
+
       const submitBtn = document.getElementById("submitBtn");
       const btnText = submitBtn.querySelector(".btn-text");
       const btnSpinner = submitBtn.querySelector(".btn-spinner");
-      const msg = document.getElementById("msg");
       
       if (btnText) btnText.textContent = "Submitting...";
       if (btnSpinner) btnSpinner.classList.remove("hidden");
       submitBtn.disabled = true;
-      msg.textContent = "";
       
       const payload = {
         rollNo: document.getElementById("rollNo").value.trim(),
         dbmsStatus: document.getElementById("dbms").value,
+        dbmsTopic: document.getElementById("dbmsTopic").value.trim(),
         javaStatus: document.getElementById("java").value,
+        javaTopic: document.getElementById("javaTopic").value.trim(),
         dsaStatus: document.getElementById("dsa").value,
-        aptiStatus: document.getElementById("aptitude").value
+        dsaTopic: document.getElementById("dsaTopic").value.trim(),
+        aptiStatus: document.getElementById("aptitude").value,
+        aptiTopic: document.getElementById("aptiTopic").value.trim()
       };
 
       fetch(SCRIPT_URL, {
@@ -242,6 +343,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Reset form & greeting back to default
         form.reset();
         handleRollNumberInput();
+        initSubjectStatusListeners();
         
         // Auto refresh analytics to reflect recent submission
         setTimeout(fetchAnalytics, 1200);
