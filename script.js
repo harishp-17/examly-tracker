@@ -179,7 +179,7 @@ function updateProgressBar(barId, textIdList, count, total, labelPrefix = "") {
   const barEl = document.getElementById(barId);
   const textEl = getElementByPossibleIds(textIdList);
   
-  const safeTotal = total > 0 ? total : 63;
+  const safeTotal = Number(total) > 0 ? Number(total) : 63;
   const safeCount = Math.min(Math.max(Number(count) || 0, 0), safeTotal);
   const percentage = Math.round((safeCount / safeTotal) * 100);
   
@@ -214,6 +214,7 @@ async function fetchAnalytics() {
     
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const data = await response.json();
+    console.log("Live Analytics Data Received:", data);
     
     // Store student map if available
     if (data.studentMap && typeof data.studentMap === "object") {
@@ -233,10 +234,10 @@ async function fetchAnalytics() {
     
     if (data.subjectCounts && typeof data.subjectCounts === "object") {
       // 1. Direct structured subjectCounts from Code.gs
-      dbmsCount = Number(data.subjectCounts.dbms ?? data.subjectCounts.DBMS ?? 0);
+      dbmsCount = Number(data.subjectCounts.dbms ?? data.subjectCounts.DBMS ?? data.subjectCounts.Dbms ?? 0);
       javaCount = Number(data.subjectCounts.java ?? data.subjectCounts.JAVA ?? data.subjectCounts.Java ?? 0);
-      dsaCount  = Number(data.subjectCounts.dsa  ?? data.subjectCounts.DSA  ?? 0);
-      aptiCount = Number(data.subjectCounts.aptitude ?? data.subjectCounts.apti ?? data.subjectCounts.Aptitude ?? 0);
+      dsaCount  = Number(data.subjectCounts.dsa  ?? data.subjectCounts.DSA  ?? data.subjectCounts.Dsa  ?? 0);
+      aptiCount = Number(data.subjectCounts.aptitude ?? data.subjectCounts.apti ?? data.subjectCounts.Aptitude ?? data.subjectCounts.APTI ?? 0);
     } else if (Array.isArray(data.records) || Array.isArray(data.submissions)) {
       // 2. Compute from records array if present
       const records = data.records || data.submissions;
@@ -248,15 +249,15 @@ async function fetchAnalytics() {
 
       records.forEach(rec => {
         const roll = String(rec.rollNo || rec.roll || "").trim();
-        const dbmsSt = rec.dbmsStatus || rec.dbms || "";
-        const javaSt = rec.javaStatus || rec.java || "";
-        const dsaSt = rec.dsaStatus || rec.dsa || "";
-        const aptiSt = rec.aptiStatus || rec.aptitude || rec.aptitudeStatus || "";
+        const dbmsSt = String(rec.dbmsStatus || rec.dbms || "").toLowerCase().trim();
+        const javaSt = String(rec.javaStatus || rec.java || "").toLowerCase().trim();
+        const dsaSt = String(rec.dsaStatus || rec.dsa || "").toLowerCase().trim();
+        const aptiSt = String(rec.aptiStatus || rec.aptitude || rec.aptitudeStatus || "").toLowerCase().trim();
 
-        const hasDbms = dbmsSt === "Completed" || dbmsSt === "In Progress";
-        const hasJava = javaSt === "Completed" || javaSt === "In Progress";
-        const hasDsa  = dsaSt === "Completed" || dsaSt === "In Progress";
-        const hasApti = aptiSt === "Completed" || aptiSt === "In Progress";
+        const hasDbms = dbmsSt === "completed" || dbmsSt === "in progress";
+        const hasJava = javaSt === "completed" || javaSt === "in progress";
+        const hasDsa  = dsaSt === "completed" || dsaSt === "in progress";
+        const hasApti = aptiSt === "completed" || aptiSt === "in progress";
 
         if (hasDbms || hasJava || hasDsa || hasApti) {
           if (roll) uniqueStudents.add(roll);
@@ -275,10 +276,10 @@ async function fetchAnalytics() {
       aptiCount = aptiSet.size;
     } else {
       // 3. Fallback direct properties
-      dbmsCount = Number(data.dbmsCount ?? data.dbmsCompleted ?? 0);
-      javaCount = Number(data.javaCount ?? data.javaCompleted ?? 0);
-      dsaCount  = Number(data.dsaCount  ?? data.dsaCompleted  ?? 0);
-      aptiCount = Number(data.aptiCount ?? data.aptitudeCount ?? data.aptitudeCompleted ?? 0);
+      dbmsCount = Number(data.dbmsCount ?? data.dbmsCompleted ?? data.dbms ?? 0);
+      javaCount = Number(data.javaCount ?? data.javaCompleted ?? data.java ?? 0);
+      dsaCount  = Number(data.dsaCount  ?? data.dsaCompleted  ?? data.dsa ?? 0);
+      aptiCount = Number(data.aptiCount ?? data.aptitudeCount ?? data.aptitudeCompleted ?? data.aptitude ?? 0);
     }
 
     // Update Overall Progress
@@ -294,10 +295,10 @@ async function fetchAnalytics() {
     }
 
     // Update Subject-Wise Progress Bars independently
-    updateProgressBar("dbmsProgressBar", ["dbmsCountText", "dbmsCount"], dbmsCount, totalStudents);
-    updateProgressBar("javaProgressBar", ["javaCountText", "javaCount"], javaCount, totalStudents);
-    updateProgressBar("dsaProgressBar", ["dsaCountText", "dsaCount"], dsaCount, totalStudents);
-    updateProgressBar("aptiProgressBar", ["aptiCountText", "aptiCount"], aptiCount, totalStudents);
+    updateProgressBar("dbmsProgressBar", ["dbmsCountText", "dbmsCount", "dbmsStatText"], dbmsCount, totalStudents);
+    updateProgressBar("javaProgressBar", ["javaCountText", "javaCount", "javaStatText"], javaCount, totalStudents);
+    updateProgressBar("dsaProgressBar", ["dsaCountText", "dsaCount", "dsaStatText"], dsaCount, totalStudents);
+    updateProgressBar("aptiProgressBar", ["aptiCountText", "aptiCount", "aptitudeCountText", "aptiStatText"], aptiCount, totalStudents);
     
     // Update timestamp
     const now = new Date();
