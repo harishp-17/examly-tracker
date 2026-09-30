@@ -3,89 +3,211 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VSB CSBS Neopat Progress Tracker</title>
+  <title>III CSBS Examly Course Progress Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <div class="app-container">
+    <header class="app-header">
+      <div class="badge">VSB Engineering College</div>
+      <h1>III CSBS NeoPAT Tracker</h1>
+      <p class="subtitle">Real-time daily progress monitoring & batch analytics</p>
+    </header>
 
-  <!-- Top Right Live Clock Bar -->
-  <div class="top-header">
-    <div class="live-clock" id="liveClock">Loading Clock...</div>
-  </div>
+    <main class="dashboard-grid">
+      <!-- Tracker Submission Card -->
+      <div class="card form-card">
+        <!-- Dynamic Time-Based Greeting Card -->
+        <div id="greetingCard" class="greeting-card">
+          <div class="greeting-icon-box" id="greetingIcon">☀️</div>
+          <div class="greeting-content">
+            <h3 id="greetingTitle" class="greeting-title">Good Morning, Student!</h3>
+            <p id="greetingSubtitle" class="greeting-subtitle">Ready to learn?</p>
+          </div>
+        </div>
 
-  <div class="container">
-    <h2>VSB CSBS Neopat Tracker</h2>
+        <form id="trackerForm">
+          <div class="field">
+            <label for="rollNo">Register Number / Roll Number</label>
+            <div class="input-wrapper">
+              <input type="text" id="rollNo" placeholder="Enter Roll Number (e.g. 922524244012)" autocomplete="off" required>
+            </div>
+            
+            <!-- Student Name Suggestion Badge -->
+            <div id="studentNameWrapper" class="student-name-wrapper hidden">
+              <span class="pulse-dot"></span>
+              <span class="student-label">Student:</span>
+              <strong id="studentNameText" class="student-name-text"></strong>
+            </div>
+          </div>
 
-    <!-- Live Analytics Bar -->
-    <div class="analytics-card">
-      <div class="analytics-header">
-        <span><strong>Total Submitted Today:</strong> <span id="submittedCount">0</span> / <span id="totalCount">63</span></span>
-        <span id="progressPercent" style="font-weight: bold; color: #38bdf8;">0%</span>
+          <div class="course-group">
+            <div class="course-group-header">
+              <h3>Today's Course Status</h3>
+              <span class="batch-badge">Daily Log</span>
+            </div>
+            
+            <div class="field">
+              <div class="field-label-row">
+                <label for="dbms">2028_DBMS Preparatory Course_Level 1</label>
+                <span class="subject-tag dbms-tag">DBMS</span>
+              </div>
+              <select id="dbms">
+                <option value="Completed">Completed</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Pending" selected>Pending</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <div class="field-label-row">
+                <label for="java">NeoPAT_Prepcourse_Java_Level 1</label>
+                <span class="subject-tag java-tag">JAVA</span>
+              </div>
+              <select id="java">
+                <option value="Completed">Completed</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Pending" selected>Pending</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <div class="field-label-row">
+                <label for="dsa">NeoPAT_Prepcourse_DSA_Level 1</label>
+                <span class="subject-tag dsa-tag">DSA</span>
+              </div>
+              <select id="dsa">
+                <option value="Completed">Completed</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Pending" selected>Pending</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <div class="field-label-row">
+                <label for="aptitude">NeoPAT_Aptitude Preparatory Course</label>
+                <span class="subject-tag apti-tag">APTITUDE</span>
+              </div>
+              <select id="aptitude">
+                <option value="Completed">Completed</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Pending" selected>Pending</option>
+              </select>
+            </div>
+          </div>
+
+          <button type="submit" id="submitBtn">
+            <span class="btn-text">Submit Progress</span>
+            <span class="btn-spinner hidden"></span>
+          </button>
+        </form>
+        
+        <div id="msg" class="msg-box"></div>
       </div>
-      <div class="progress-bg">
-        <div id="progressBar" class="progress-fill"></div>
-      </div>
-    </div>
 
-    <!-- Student Details Input -->
-    <div class="form-group">
-      <label for="rollNoInput">Register Roll Number:</label>
-      <input type="text" id="rollNoInput" placeholder="Ex: 922524244xxx" maxlength="12" oninput="handleRollInput()">
-      
-      <!-- Styled Greeting Badge matching CSS & JS -->
-      <div id="studentNameWrapper" class="student-greeting-badge">
-        Hello <span id="studentName"></span>, please update your Daily Progress!
-      </div>
-    </div>
+      <!-- Analytics Section Card -->
+      <div class="card analytics-card">
+        <div class="analytics-header">
+          <div>
+            <h2>Batch Live Analytics</h2>
+            <p class="analytics-subtitle">III CSBS Cohort Real-Time Metrics</p>
+          </div>
+          <button id="refreshAnalyticsBtn" class="refresh-btn" title="Refresh Live Data">
+            <svg class="refresh-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="23 4 23 10 17 10"></polyline>
+              <polyline points="1 20 1 14 7 14"></polyline>
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+            </svg>
+          </button>
+        </div>
 
-    <!-- Course Progress Section -->
-    <div class="subject-grid">
-      <!-- DBMS -->
-      <div class="subject-box">
-        <div class="subject-title">DBMS</div>
-        <select id="dbmsStatus">
-          <option value="Pending">Pending</option>
-          <option value="In Progress">In Progress</option>
-          <option value="Completed">Completed</option>
-        </select>
-        <input type="text" id="dbmsTopic" placeholder="Topic Name" style="margin-top: 6px;">
-      </div>
+        <!-- Overall Progress Section -->
+        <div class="overall-progress-box">
+          <div class="progress-info-row">
+            <span class="progress-title">Overall Batch Submissions</span>
+            <span id="overallProgressText" class="progress-count">0 / 63 Completed (0%)</span>
+          </div>
+          <div class="progress-track">
+            <div id="overallProgressBar" class="progress-fill overall-fill" style="width: 0%;"></div>
+          </div>
+        </div>
 
-      <!-- Java -->
-      <div class="subject-box">
-        <div class="subject-title">Java</div>
-        <select id="javaStatus">
-          <option value="Pending">Pending</option>
-          <option value="In Progress">In Progress</option>
-          <option value="Completed">Completed</option>
-        </select>
-        <input type="text" id="javaTopic" placeholder="Topic Name" style="margin-top: 6px;">
-      </div>
+        <!-- Subject-Wise Completion Progress Breakdown -->
+        <div class="subjects-breakdown-section">
+          <div class="section-divider">
+            <span>Subject-Wise Completion</span>
+          </div>
 
-      <!-- DSA -->
-      <div class="subject-box">
-        <div class="subject-title">DSA</div>
-        <select id="dsaStatus">
-          <option value="Pending">Pending</option>
-          <option value="In Progress">In Progress</option>
-          <option value="Completed">Completed</option>
-        </select>
-        <input type="text" id="dsaTopic" placeholder="Topic Name" style="margin-top: 6px;">
-      </div>
+          <div class="subject-progress-list">
+            <!-- DBMS Progress -->
+            <div class="subject-progress-card">
+              <div class="subject-info-row">
+                <div class="subject-name-group">
+                  <span class="color-dot dot-dbms"></span>
+                  <span class="subject-name">DBMS Preparatory</span>
+                </div>
+                <span id="dbmsCountText" class="subject-stat-text">0/63 (0%)</span>
+              </div>
+              <div class="progress-track">
+                <div id="dbmsProgressBar" class="progress-fill dbms-fill" style="width: 0%;"></div>
+              </div>
+            </div>
 
-      <!-- Aptitude -->
-      <div class="subject-box">
-        <div class="subject-title">Aptitude</div>
-        <select id="aptiStatus">
-          <option value="Pending">Pending</option>
-          <option value="In Progress">In Progress</option>
-          <option value="Completed">Completed</option>
-        </select>
-        <input type="text" id="aptiTopic" placeholder="Topic Name" style="margin-top: 6px;">
-      </div>
-    </div>
+            <!-- Java Progress -->
+            <div class="subject-progress-card">
+              <div class="subject-info-row">
+                <div class="subject-name-group">
+                  <span class="color-dot dot-java"></span>
+                  <span class="subject-name">Java Level 1</span>
+                </div>
+                <span id="javaCountText" class="subject-stat-text">0/63 (0%)</span>
+              </div>
+              <div class="progress-track">
+                <div id="javaProgressBar" class="progress-fill java-fill" style="width: 0%;"></div>
+              </div>
+            </div>
 
-    <button class="btn-submit" id="submitBtn" onclick="submitProgress()">Submit Today Progress</button>
+            <!-- DSA Progress -->
+            <div class="subject-progress-card">
+              <div class="subject-info-row">
+                <div class="subject-name-group">
+                  <span class="color-dot dot-dsa"></span>
+                  <span class="subject-name">DSA Level 1</span>
+                </div>
+                <span id="dsaCountText" class="subject-stat-text">0/63 (0%)</span>
+              </div>
+              <div class="progress-track">
+                <div id="dsaProgressBar" class="progress-fill dsa-fill" style="width: 0%;"></div>
+              </div>
+            </div>
+
+            <!-- Aptitude Progress -->
+            <div class="subject-progress-card">
+              <div class="subject-info-row">
+                <div class="subject-name-group">
+                  <span class="color-dot dot-apti"></span>
+                  <span class="subject-name">Aptitude Prep</span>
+                </div>
+                <span id="aptiCountText" class="subject-stat-text">0/63 (0%)</span>
+              </div>
+              <div class="progress-track">
+                <div id="aptiProgressBar" class="progress-fill apti-fill" style="width: 0%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="analytics-footer">
+          <span class="sync-indicator">
+            <span class="sync-dot"></span>
+            <span id="lastSyncedText">Syncing live data...</span>
+          </span>
+        </div>
+      </div>
+    </main>
   </div>
 
   <script src="script.js"></script>
