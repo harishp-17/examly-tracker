@@ -219,7 +219,7 @@ async function fetchAnalytics() {
     }
     
     const totalStudents = Number(data.totalStudents) || 63;
-    const submittedCount = Number(data.submittedCount) || 0;
+    let submittedCount = 0;
     
     // Calculate subject-wise completion counts from API data
     let dbmsCount = 0;
@@ -227,25 +227,61 @@ async function fetchAnalytics() {
     let dsaCount = 0;
     let aptiCount = 0;
     
-    if (data.subjectCounts) {
-      dbmsCount = Number(data.subjectCounts.dbms || data.subjectCounts.DBMS) || 0;
-      javaCount = Number(data.subjectCounts.java || data.subjectCounts.JAVA || data.subjectCounts.Java) || 0;
-      dsaCount = Number(data.subjectCounts.dsa || data.subjectCounts.DSA) || 0;
-      aptiCount = Number(data.subjectCounts.aptitude || data.subjectCounts.apti || data.subjectCounts.Aptitude) || 0;
-    } else if (Array.isArray(data.records) || Array.isArray(data.submissions)) {
-      const records = data.records || data.submissions;
+    const records = data.records || data.submissions || data.rows || data.data;
+
+    if (Array.isArray(records)) {
+      // 1. Calculate unique students who submitted/updated at least 1 course today
+      const uniqueStudents = new Set();
+      const dbmsStudents = new Set();
+      const javaStudents = new Set();
+      const dsaStudents = new Set();
+      const aptiStudents = new Set();
+
       records.forEach(rec => {
-        if (rec.dbmsStatus === "Completed" || rec.dbms === "Completed") dbmsCount++;
-        if (rec.javaStatus === "Completed" || rec.java === "Completed") javaCount++;
-        if (rec.dsaStatus === "Completed" || rec.dsa === "Completed") dsaCount++;
-        if (rec.aptiStatus === "Completed" || rec.aptitude === "Completed" || rec.aptitudeStatus === "Completed") aptiCount++;
+        const roll = String(rec.rollNo || rec.roll || "").trim();
+        const dbmsSt = rec.dbmsStatus || rec.dbms || "";
+        const javaSt = rec.javaStatus || rec.java || "";
+        const dsaSt = rec.dsaStatus || rec.dsa || "";
+        const aptiSt = rec.aptiStatus || rec.aptitude || rec.aptitudeStatus || "";
+
+        const hasDbms = dbmsSt === "Completed" || dbmsSt === "In Progress";
+        const hasJava = javaSt === "Completed" || javaSt === "In Progress";
+        const hasDsa = dsaSt === "Completed" || dsaSt === "In Progress";
+        const hasApti = aptiSt === "Completed" || aptiSt === "In Progress";
+
+        // If student updated any course status, count in overall submissions
+        if (hasDbms || hasJava || hasDsa || hasApti || rec.timestamp) {
+          if (roll) uniqueStudents.add(roll);
+        }
+
+        // Count individual subject completions/updates
+        if (hasDbms && roll) dbmsStudents.add(roll);
+        if (hasJava && roll) javaStudents.add(roll);
+        if (hasDsa && roll) dsaStudents.add(roll);
+        if (hasApti && roll) aptiStudents.add(roll);
       });
+
+      submittedCount = uniqueStudents.size || Number(data.submittedCount) || 0;
+      dbmsCount = dbmsStudents.size;
+      javaCount = javaStudents.size;
+      dsaCount = dsaStudents.size;
+      aptiCount = aptiStudents.size;
+
+    } else if (data.subjectCounts && typeof data.subjectCounts === "object") {
+      // 2. Pre-calculated subjectCounts object from Google Apps Script
+      submittedCount = Number(data.submittedCount ?? data.uniqueStudentsCount ?? data.totalSubmitted) || 0;
+      dbmsCount = Number(data.subjectCounts.dbms ?? data.subjectCounts.DBMS ?? 0);
+      javaCount = Number(data.subjectCounts.java ?? data.subjectCounts.JAVA ?? data.subjectCounts.Java ?? 0);
+      dsaCount = Number(data.subjectCounts.dsa ?? data.subjectCounts.DSA ?? 0);
+      aptiCount = Number(data.subjectCounts.aptitude ?? data.subjectCounts.apti ?? data.subjectCounts.Aptitude ?? 0);
+
     } else {
-      // Direct subject completion keys or submittedCount fallback
-      dbmsCount = Number(data.dbmsCompleted ?? data.dbmsCount ?? submittedCount) || 0;
-      javaCount = Number(data.javaCompleted ?? data.javaCount ?? submittedCount) || 0;
-      dsaCount = Number(data.dsaCompleted ?? data.dsaCount ?? submittedCount) || 0;
-      aptiCount = Number(data.aptitudeCompleted ?? data.aptiCompleted ?? data.aptiCount ?? submittedCount) || 0;
+      // 3. Direct subject completion keys from API endpoint
+      submittedCount = Number(data.submittedCount ?? data.uniqueStudentsCount ?? 0);
+      dbmsCount = Number(data.dbmsCount ?? data.dbmsCompleted ?? data.dbms ?? 0);
+      javaCount = Number(data.javaCount ?? data.javaCompleted ?? data.java ?? 0);
+      dsaCount = Number(data.dsaCount ?? data.dsaCompleted ?? data.dsa ?? 0);
+      aptiCount = Number(data.aptiCount ?? data.aptitudeCount ?? data.aptitudeCompleted ?? data.aptitude ?? 0);
     }
 
     // Update Overall Progress
@@ -254,10 +290,10 @@ async function fetchAnalytics() {
     const overallProgressText = document.getElementById("overallProgressText");
     if (overallProgressBar && overallProgressText) {
       overallProgressBar.style.width = `${overallPercentage}%`;
-      overallProgressText.textContent = `${submittedCount} / ${totalStudents} Completed (${overallPercentage}%)`;
+      overallProgressText.textContent = `${submittedCount} / ${totalStudents} Submitted (${overallPercentage}%)`;
     }
 
-    // Update Subject-Wise Progress Bars
+    // Update Subject-Wise Progress Bars independently
     updateProgressBar("dbmsProgressBar", "dbmsCountText", dbmsCount, totalStudents);
     updateProgressBar("javaProgressBar", "javaCountText", javaCount, totalStudents);
     updateProgressBar("dsaProgressBar", "dsaCountText", dsaCount, totalStudents);
