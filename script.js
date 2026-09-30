@@ -4,6 +4,14 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxwW3coAMZZLNWnkZ9-j
 let studentDatabase = {};
 let currentStudentName = "Student";
 
+// Subject configurations
+const SUBJECT_CONFIG = [
+  { key: "dbms", name: "DBMS", selectIds: ["dbms", "dbmsStatus"], boxId: "dbmsBox", wrapperId: "dbmsTopicWrapper", inputId: "dbmsTopic" },
+  { key: "java", name: "Java", selectIds: ["java", "javaStatus"], boxId: "javaBox", wrapperId: "javaTopicWrapper", inputId: "javaTopic" },
+  { key: "dsa", name: "DSA", selectIds: ["dsa", "dsaStatus"], boxId: "dsaBox", wrapperId: "dsaTopicWrapper", inputId: "dsaTopic" },
+  { key: "aptitude", name: "Aptitude", selectIds: ["aptitude", "aptiStatus", "apti"], boxId: "aptiBox", wrapperId: "aptiTopicWrapper", inputId: "aptiTopic" }
+];
+
 /**
  * Formats a student's name nicely (e.g. "HARISH P" -> "Harish P")
  */
@@ -87,50 +95,66 @@ function isValidTopicName(topic) {
 }
 
 /**
- * Updates visibility and highlighting for a subject's topic input based on status
+ * Helper to find element by multiple possible IDs
  */
-function syncSubjectTopicVisibility(selectId, boxId, wrapperId, inputId) {
-  const selectEl = document.getElementById(selectId);
-  const boxEl = document.getElementById(boxId);
-  const wrapperEl = document.getElementById(wrapperId);
-  const inputEl = document.getElementById(inputId);
+function getElementByPossibleIds(idList) {
+  for (const id of idList) {
+    const el = document.getElementById(id);
+    if (el) return el;
+  }
+  return null;
+}
+
+/**
+ * Dynamically toggles visibility of topic input boxes based on status selection
+ * - "In Progress" or "Completed": Shows topic input box and highlights subject
+ * - "Pending": Hides topic box and clears any entered text
+ */
+function syncSubjectTopicVisibility(subject) {
+  const selectEl = getElementByPossibleIds(subject.selectIds);
+  const boxEl = document.getElementById(subject.boxId);
+  const wrapperEl = document.getElementById(subject.wrapperId);
+  const inputEl = document.getElementById(subject.inputId);
   
   if (!selectEl || !boxEl || !wrapperEl || !inputEl) return;
   
   const status = selectEl.value;
   if (status === "In Progress" || status === "Completed") {
-    boxEl.classList.add("active-subject");
+    // Show topic input box
+    wrapperEl.classList.remove("hidden");
     wrapperEl.classList.add("highlighted");
-    inputEl.setAttribute("required", "true");
+    boxEl.classList.add("active-subject");
   } else {
-    boxEl.classList.remove("active-subject");
+    // Hide topic input box and reset entered value
+    wrapperEl.classList.add("hidden");
     wrapperEl.classList.remove("highlighted");
-    inputEl.removeAttribute("required");
+    boxEl.classList.remove("active-subject");
+    inputEl.value = "";
     inputEl.classList.remove("input-error");
   }
 }
 
 /**
- * Initializes subject status change listeners
+ * Syncs all subject topic boxes to match current dropdown states
+ */
+function syncAllSubjectTopics() {
+  SUBJECT_CONFIG.forEach(sub => {
+    syncSubjectTopicVisibility(sub);
+  });
+}
+
+/**
+ * Initializes change listeners for subject status dropdowns
  */
 function initSubjectStatusListeners() {
-  const subjects = [
-    { select: "dbms", box: "dbmsBox", wrapper: "dbmsTopicWrapper", input: "dbmsTopic" },
-    { select: "java", box: "javaBox", wrapper: "javaTopicWrapper", input: "javaTopic" },
-    { select: "dsa", box: "dsaBox", wrapper: "dsaTopicWrapper", input: "dsaTopic" },
-    { select: "aptitude", box: "aptiBox", wrapper: "aptiTopicWrapper", input: "aptiTopic" }
-  ];
-
-  subjects.forEach(sub => {
-    const selectEl = document.getElementById(sub.select);
-    const inputEl = document.getElementById(sub.input);
+  SUBJECT_CONFIG.forEach(sub => {
+    const selectEl = getElementByPossibleIds(sub.selectIds);
+    const inputEl = document.getElementById(sub.inputId);
     
     if (selectEl) {
       selectEl.addEventListener("change", () => {
-        syncSubjectTopicVisibility(sub.select, sub.box, sub.wrapper, sub.input);
+        syncSubjectTopicVisibility(sub);
       });
-      // Initial sync
-      syncSubjectTopicVisibility(sub.select, sub.box, sub.wrapper, sub.input);
     }
     
     if (inputEl) {
@@ -141,6 +165,9 @@ function initSubjectStatusListeners() {
       });
     }
   });
+
+  // Perform initial sync on load
+  syncAllSubjectTopics();
 }
 
 /**
@@ -265,7 +292,7 @@ document.addEventListener("DOMContentLoaded", () => {
     rollInput.addEventListener("input", handleRollNumberInput);
   }
 
-  // 4. Initialize subject status and topic field visibility listeners
+  // 4. Initialize subject status and dynamic topic box visibility
   initSubjectStatusListeners();
 
   // 5. Manual Refresh Button
@@ -274,7 +301,7 @@ document.addEventListener("DOMContentLoaded", () => {
     refreshBtn.addEventListener("click", fetchAnalytics);
   }
 
-  // 6. Tracker Form Submission with Validation
+  // 6. Tracker Form Submission with Conditional Validation
   const form = document.getElementById("trackerForm");
   if (form) {
     form.addEventListener("submit", function(e) {
@@ -283,17 +310,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const msg = document.getElementById("msg");
       msg.textContent = "";
 
-      // Validate Subject Topics when status is "In Progress" or "Completed"
-      const subjectChecks = [
-        { name: "DBMS", select: "dbms", input: "dbmsTopic" },
-        { name: "Java", select: "java", input: "javaTopic" },
-        { name: "DSA", select: "dsa", input: "dsaTopic" },
-        { name: "Aptitude", select: "aptitude", input: "aptiTopic" }
-      ];
-
-      for (const sub of subjectChecks) {
-        const selectEl = document.getElementById(sub.select);
-        const inputEl = document.getElementById(sub.input);
+      // Validate topic inputs ONLY for subjects where status is "In Progress" or "Completed"
+      for (const sub of SUBJECT_CONFIG) {
+        const selectEl = getElementByPossibleIds(sub.selectIds);
+        const inputEl = document.getElementById(sub.inputId);
         const status = selectEl ? selectEl.value : "Pending";
         const topicVal = inputEl ? inputEl.value.trim() : "";
 
@@ -318,16 +338,31 @@ document.addEventListener("DOMContentLoaded", () => {
       if (btnSpinner) btnSpinner.classList.remove("hidden");
       submitBtn.disabled = true;
       
+      const dbmsSelect = getElementByPossibleIds(["dbms", "dbmsStatus"]);
+      const javaSelect = getElementByPossibleIds(["java", "javaStatus"]);
+      const dsaSelect = getElementByPossibleIds(["dsa", "dsaStatus"]);
+      const aptiSelect = getElementByPossibleIds(["aptitude", "aptiStatus", "apti"]);
+
+      const dbmsTopicInput = document.getElementById("dbmsTopic");
+      const javaTopicInput = document.getElementById("javaTopic");
+      const dsaTopicInput = document.getElementById("dsaTopic");
+      const aptiTopicInput = document.getElementById("aptiTopic");
+
+      const dbmsStatus = dbmsSelect ? dbmsSelect.value : "Pending";
+      const javaStatus = javaSelect ? javaSelect.value : "Pending";
+      const dsaStatus = dsaSelect ? dsaSelect.value : "Pending";
+      const aptiStatus = aptiSelect ? aptiSelect.value : "Pending";
+
       const payload = {
         rollNo: document.getElementById("rollNo").value.trim(),
-        dbmsStatus: document.getElementById("dbms").value,
-        dbmsTopic: document.getElementById("dbmsTopic").value.trim(),
-        javaStatus: document.getElementById("java").value,
-        javaTopic: document.getElementById("javaTopic").value.trim(),
-        dsaStatus: document.getElementById("dsa").value,
-        dsaTopic: document.getElementById("dsaTopic").value.trim(),
-        aptiStatus: document.getElementById("aptitude").value,
-        aptiTopic: document.getElementById("aptiTopic").value.trim()
+        dbmsStatus: dbmsStatus,
+        dbmsTopic: dbmsStatus !== "Pending" && dbmsTopicInput ? dbmsTopicInput.value.trim() : "",
+        javaStatus: javaStatus,
+        javaTopic: javaStatus !== "Pending" && javaTopicInput ? javaTopicInput.value.trim() : "",
+        dsaStatus: dsaStatus,
+        dsaTopic: dsaStatus !== "Pending" && dsaTopicInput ? dsaTopicInput.value.trim() : "",
+        aptiStatus: aptiStatus,
+        aptiTopic: aptiStatus !== "Pending" && aptiTopicInput ? aptiTopicInput.value.trim() : ""
       };
 
       fetch(SCRIPT_URL, {
@@ -340,10 +375,10 @@ document.addEventListener("DOMContentLoaded", () => {
         msg.style.color = "#34d399";
         msg.textContent = "Progress Updated Successfully in Google Sheet!";
         
-        // Reset form & greeting back to default
+        // Reset form, topic visibility, and greeting back to default
         form.reset();
+        syncAllSubjectTopics();
         handleRollNumberInput();
-        initSubjectStatusListeners();
         
         // Auto refresh analytics to reflect recent submission
         setTimeout(fetchAnalytics, 1200);
